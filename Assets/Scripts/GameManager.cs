@@ -11,11 +11,7 @@ namespace Assets.Scripts
         void Start()
         {
             _blocks = GameObject.FindGameObjectsWithTag("BuildingBlock");
-        }
-
-        private int _bombScales;
-
-        private bool _bombTriggered;
+        } 
 
         // Update is called once per frame
         void Update()

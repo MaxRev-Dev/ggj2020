@@ -7,6 +7,8 @@ namespace Assets.Scripts.Explosions
     {
         private bool exploded;
         public float commonDelay;
+        public LayerMask explosionLayers;
+
 
         // Start is called before the first frame update
         void Start()
@@ -30,7 +32,7 @@ namespace Assets.Scripts.Explosions
             {
                 var explosion = bomb.GetComponent<Explosion>();
                 yield return new WaitForSeconds(explosion.explodeDelay);
-                explosion.Explode();
+                explosion.Explode(explosionLayers);
             }
         }
     }

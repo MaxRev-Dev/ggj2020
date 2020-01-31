@@ -14,11 +14,11 @@ namespace Assets.Scripts.Explosions
         {
         }
 
-        public void Explode()
+        public void Explode(LayerMask layer)
         {
             var point = this.transform.position;
 
-            colliders = Physics2D.OverlapCircleAll(point, explosionRadius, explosionLayers);
+            colliders = Physics2D.OverlapCircleAll(point, explosionRadius, layer);
 
             foreach (var coll in colliders)
             {
@@ -29,7 +29,6 @@ namespace Assets.Scripts.Explosions
 
         public float explosionRadius = 10;
         public float explosionPower = 100;
-        public LayerMask explosionLayers;
         public Collider2D[] colliders;
         public float explodeDelay = 0;
     }

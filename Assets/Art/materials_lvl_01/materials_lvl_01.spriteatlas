@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: materials_lvl_01
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 1
+      compressionQuality: 50
+      maxTextureSize: 2048
+      textureCompression: 0
+      filterMode: 1
+      generateMipMaps: 0
+      readable: 1
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings:
+    - serializedVersion: 3
+      m_BuildTarget: WebGL
+      m_MaxTextureSize: 2048
+      m_ResizeAlgorithm: 0
+      m_TextureFormat: 12
+      m_TextureCompression: 1
+      m_CompressionQuality: 50
+      m_CrunchedCompression: 0
+      m_AllowsAlphaSplitting: 0
+      m_Overridden: 1
+      m_AndroidETC2FallbackOverride: 0
+      m_ForceMaximumCompressionQuality_BC6H_BC7: 0
+    - serializedVersion: 3
+      m_BuildTarget: Android
+      m_MaxTextureSize: 2048
+      m_ResizeAlgorithm: 0
+      m_TextureFormat: 47
+      m_TextureCompression: 1
+      m_CompressionQuality: 50
+      m_CrunchedCompression: 0
+      m_AllowsAlphaSplitting: 0
+      m_Overridden: 1
+      m_AndroidETC2FallbackOverride: 0
+      m_ForceMaximumCompressionQuality_BC6H_BC7: 0
+    - serializedVersion: 3
+      m_BuildTarget: Standalone
+      m_MaxTextureSize: 2048
+      m_ResizeAlgorithm: 0
+      m_TextureFormat: 12
+      m_TextureCompression: 1
+      m_CompressionQuality: 50
+      m_CrunchedCompression: 0
+      m_AllowsAlphaSplitting: 0
+      m_Overridden: 1
+      m_AndroidETC2FallbackOverride: 0
+      m_ForceMaximumCompressionQuality_BC6H_BC7: 0
+    - serializedVersion: 3
+      m_BuildTarget: iPhone
+      m_MaxTextureSize: 2048
+      m_ResizeAlgorithm: 0
+      m_TextureFormat: 33
+      m_TextureCompression: 1
+      m_CompressionQuality: 50
+      m_CrunchedCompression: 0
+      m_AllowsAlphaSplitting: 0
+      m_Overridden: 1
+      m_AndroidETC2FallbackOverride: 0
+      m_ForceMaximumCompressionQuality_BC6H_BC7: 0
+    packingSettings:
+      serializedVersion: 2
+      padding: 4
+      blockOffset: 1
+      allowAlphaSplitting: 0
+      enableRotation: 1
+      enableTightPacking: 1
+    variantMultiplier: 1
+    packables:
+    - {fileID: 2800000, guid: b72963fe3237ec24b90a572bfa2fc04d, type: 3}
+    - {fileID: 2800000, guid: b247dc89274e8bb47a269862848da689, type: 3}
+    - {fileID: 2800000, guid: 01e8ad334c682fd4389f122dafac057b, type: 3}
+    - {fileID: 2800000, guid: 24e9fc6b6871f124499c2ad8a833d3ac, type: 3}
+    - {fileID: 2800000, guid: ef06caa6edc659840be081b5456a75b9, type: 3}
+    - {fileID: 2800000, guid: d03aafa3795675c46a901bb7130a0834, type: 3}
+    - {fileID: 2800000, guid: 93d78e7253260ce41ba51738b840e389, type: 3}
+    - {fileID: 2800000, guid: e85bd42749879d54e9b8dd73d045acdb, type: 3}
+    - {fileID: 2800000, guid: 89be770b34c0294498b01b2113c1ca75, type: 3}
+    - {fileID: 2800000, guid: 21cb50e756cd41745a251fc23297f17a, type: 3}
+    - {fileID: 2800000, guid: 397f29e6106668d4c886a69cffc90ce0, type: 3}
+    totalSpriteSurfaceArea: 89500
+    bindAsDefault: 1
+    storedHash:
+      serializedVersion: 2
+      Hash: 00000000000000000000000000000000
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: 21300000, guid: 93d78e7253260ce41ba51738b840e389, type: 3}
+  - {fileID: 21300000, guid: 01e8ad334c682fd4389f122dafac057b, type: 3}
+  - {fileID: 21300000, guid: d03aafa3795675c46a901bb7130a0834, type: 3}
+  - {fileID: 21300000, guid: ef06caa6edc659840be081b5456a75b9, type: 3}
+  - {fileID: 21300000, guid: 397f29e6106668d4c886a69cffc90ce0, type: 3}
+  - {fileID: 21300000, guid: e85bd42749879d54e9b8dd73d045acdb, type: 3}
+  - {fileID: 21300000, guid: 21cb50e756cd41745a251fc23297f17a, type: 3}
+  - {fileID: 21300000, guid: b247dc89274e8bb47a269862848da689, type: 3}
+  - {fileID: 21300000, guid: 89be770b34c0294498b01b2113c1ca75, type: 3}
+  - {fileID: 21300000, guid: 24e9fc6b6871f124499c2ad8a833d3ac, type: 3}
+  - {fileID: 21300000, guid: b72963fe3237ec24b90a572bfa2fc04d, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - brick_type_09
+  - brick_type_03
+  - brick_type_07
+  - brick_type_06
+  - brick_type_16
+  - brick_type_11
+  - brick_type_14
+  - ark_01
+  - brick_type_12
+  - brick_type_05
+  - brick_type_18
+  m_Tag: materials_lvl_01
+  m_IsVariant: 0

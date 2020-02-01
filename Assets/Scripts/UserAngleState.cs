@@ -7,6 +7,10 @@ namespace Assets.Scripts
     public class UserAngleState : MonoBehaviour
     {
         public Dictionary<string, float> List = new Dictionary<string, float>();
+
+        private float rotateAmount = 30;
+        private double maxRotateAmount => rotateAmount * 6;
+
         // Start is called before the first frame update
         void Start()
         {
@@ -30,7 +34,41 @@ namespace Assets.Scripts
                 {
                     var angle = List[key];
                     item.transform.Rotate(0, 0, angle);
-                } 
+                }
+            }
+        }
+
+        public void TurnRight(GameObject o)
+        {
+            var id = HistoryManager.GetItemId(o);
+            if (!List.ContainsKey(id))
+            {
+                List[id] = rotateAmount;
+            }
+            else
+            {
+                var current = List[id];
+                if (-Mathf.Abs(current) > -maxRotateAmount)
+                {
+                    List[id] -= rotateAmount;
+                }
+            }
+        }
+
+        public void TurnLeft(GameObject o)
+        {
+            var id = HistoryManager.GetItemId(o);
+            if (!List.ContainsKey(id))
+            {
+                List[id] = -rotateAmount;
+            }
+            else
+            {
+                var current = List[id];
+                if (current < maxRotateAmount)
+                {
+                    List[id] += rotateAmount;
+                }
             }
         }
     }

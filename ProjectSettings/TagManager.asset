@@ -8,6 +8,9 @@ TagManager:
   - BuildingBlock
   - Floor
   - Bomb
+  - Active
+  - ActiveItems
+  - Timeline
   layers:
   - Default
   - TransparentFX

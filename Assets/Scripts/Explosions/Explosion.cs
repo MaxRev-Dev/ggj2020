@@ -4,19 +4,15 @@ using UnityEngine;
 namespace Assets.Scripts.Explosions
 {
     public class Explosion : MonoBehaviour
-    {
-        void Start()
-        {
-
-        }
-
-        void Update()
-        {
-        }
+    { 
+        public float explosionRadius = 10;
+        public float explosionPower = 100;
+        public Collider2D[] colliders;
+        public float explodeDelay = 0;
 
         public void Explode(LayerMask layer)
         {
-            var point = this.transform.position;
+            var point = transform.position;
 
             colliders = Physics2D.OverlapCircleAll(point, explosionRadius, layer);
 
@@ -26,11 +22,5 @@ namespace Assets.Scripts.Explosions
                 coll.GetComponent<Rigidbody2D>().AddExplosionForce(explosionPower, point, explosionRadius);
             } 
         }
-
-        public float explosionRadius = 10;
-        public float explosionPower = 100;
-        public Collider2D[] colliders;
-        public float explodeDelay = 0;
     }
-
 }

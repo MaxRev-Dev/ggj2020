@@ -1,63 +1,101 @@
-﻿using System.Collections;
+﻿using Assets.Scripts.Explosions;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Assets.Scripts.Explosions;
 using UnityEngine;
 
 namespace Assets.Scripts
 {
     public class GameManager : MonoBehaviour
     {
+        public float explosionDuration = 5;
         private GameObject[] _blocks;
         private bool _initialized;
-        private List<GameObject> editable;
+        public List<GameObject> editable;
+
+        private Vector3 _cameraBase;
+        public GameObject activeOne;
+
+        private bool _cameraMovement;
 
         // Start is called before the first frame update
         void Start()
         {
-            _blocks = GameObject.FindGameObjectsWithTag("BuildingBlock");
+            _blocks = GameObject.FindObjectsOfType<BuildingBlock>().Select(x => x.gameObject).ToArray();
         }
 
         // Update is called once per frame
         void Update()
         {
+            CameraMoveToActiveObject();
             if (_initialized) return;
             _initialized = true;
             RandomizeActiveObjects();
 
             var cassette = GameObject.FindObjectOfType<BombCassette>();
             StartRecordWithDelay(cassette.commonDelay);
-            StartCoroutine(WaitAndStopRecord());
+            StartCoroutine(WaitAndStopRecord()); 
             TEST_StartInterceptor();
         }
+
         private void RandomizeActiveObjects()
         {
             var rand = GetComponent<Randomizer>();
             editable = rand.Generate(_blocks);
+            activeOne = rand.GenerateOne(_blocks);
+            activeOne.tag = "Active";
+            _cameraMovement = true;
             foreach (var item in editable)
             {
+                item.tag = "ActiveItems";
                 item.GetComponent<SpriteRenderer>().color = Color.blue;
             }
         }
 
-        private void TEST_StartInterceptor()
+        private float _activeZoffset = 20;
+
+        public void CameraMoveToActiveObject()
         {
+            var item = GetActiveItem();
+            if (item == default) return;
+            if (!_cameraMovement) return;
+            var v3 = item.transform.position;
+            _activeZoffset -= 0.1f;
+            if (_activeZoffset < 0) _cameraMovement = false;
+            var vector3 = new Vector3(v3.x, v3.y, _activeZoffset);
+            Camera.main.transform.position =
+                Vector3.Lerp(Camera.main.transform.position, vector3, Time.deltaTime * .1f);
+        }
+
+        private GameObject GetActiveItem()
+        {
+            return activeOne;
+        }
+
+
+        public void CameraReset()
+        {
+            Camera.main.transform.position = _cameraBase;
+        }
+
+        private void TEST_StartInterceptor()
+        { 
             IEnumerator _rootine()
             {
-                yield return new WaitForSeconds(3);
+                yield return new WaitForSeconds(explosionDuration);
                 var history = GetHistory();
                 history.StopPlaying();
 
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < 3; i++)
                 {
-                    history.Seek(_blocks, .1f);
-                    history.StopPlaying();
-                    history.Seek(_blocks, .5f);
-                    history.StopPlaying();
+                    yield return StartCoroutine(history.Seek(_blocks, .1f));
+                    yield return new WaitForSeconds(1f);
+                    yield return StartCoroutine(history.SeekInstant(_blocks, .5f));
+                    yield return new WaitForSeconds(1f);
                 }
 
-                history.Seek(_blocks, 0);
-
+                yield return StartCoroutine(history.SeekInstant(_blocks, 1f));
+                yield return new WaitForSeconds(1f);
                 history.StopPlaying();
             }
             StartCoroutine(_rootine());

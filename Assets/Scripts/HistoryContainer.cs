@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace Assets.Scripts
 {
@@ -31,7 +30,6 @@ namespace Assets.Scripts
         public void Clear()
         {
             Pending.Clear();
-
         }
 
         public bool Contains(KeyValuePair<string, LinkedList<BlockTransform>> item)
@@ -134,9 +132,10 @@ namespace Assets.Scripts
 
         public IEnumerable<BlockTransform> GetForPercentage(string id, float percentage)
         {
-            while (Math.Abs(GetPercentageForID(id) - percentage * 100) > 0.1)
+            while (true)
             {
-                if (GetPercentageForID(id) > percentage * 100)
+                var isRewind = GetPercentageForID(id) > percentage * 100;
+                if (isRewind)
                 {
                     if (Rewind(id, out var item))
                     {

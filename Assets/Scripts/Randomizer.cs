@@ -21,6 +21,11 @@ namespace Assets.Scripts
         }
 
 
+        public GameObject GenerateOne(GameObject[] blocks)
+        {
+            int index = Random.Range(0, blocks.Length);
+            return blocks[index];
+        }
         public List<GameObject> Generate(GameObject[] blocks)
         {
             for (int i = 0; i < maxItems; i++)

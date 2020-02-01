@@ -10,13 +10,10 @@ namespace Assets.Scripts
     public class HistoryManager : MonoBehaviour
     {
         public bool isRecording;
-        public bool isPlaying;
-        float maxAmount = 15;
-        private float slowMoFactor => 1.0f / maxAmount;
-        public readonly HistoryContainer Movements = new HistoryContainer();
-        private bool _inSlowmo;
-        private Coroutine[] _rootines;
-        private Coroutine _recordRootine;
+        public bool isPlaying; 
+        public readonly HistoryContainer Movements = new HistoryContainer(); 
+        private Coroutine[] _routines;
+        private Coroutine _recordroutine;
 
         private BlockTransform target;
 
@@ -49,7 +46,6 @@ namespace Assets.Scripts
             //}
         }
 
-
         public void Reset()
         {
             Movements.Clear();
@@ -59,13 +55,13 @@ namespace Assets.Scripts
         public void StartRecord(GameObject[] items)
         {
             isRecording = true;
-            _recordRootine = StartCoroutine(Record(items));
+            _recordroutine = StartCoroutine(Record(items));
         }
 
         public void StopRecord()
         {
-            if (_recordRootine != default)
-                StopCoroutine(_recordRootine);
+            if (_recordroutine != default)
+                StopCoroutine(_recordroutine);
             isRecording = false;
         }
 
@@ -82,7 +78,7 @@ namespace Assets.Scripts
         }
         #endregion
 
-        private string GetItemId(GameObject item)
+        public static string GetItemId(GameObject item)
         {
             return item.tag + '.' + item.name;
         }
@@ -91,43 +87,57 @@ namespace Assets.Scripts
 
         public IEnumerator RewindFor(GameObject[] blocks)
         {
-            Physics2D.autoSimulation = false;
-            isPlaying = true;
+            BooleansEnter();
             var active = 0;
-            IEnumerator _rootine(GameObject item)
+
+            IEnumerator _mainroutine(GameObject item)
             {
                 var id = GetItemId(item);
 
                 while (Movements.Rewind(id, out var itemTransform))
                 {
-                    for (int i = 0; i < (_inSlowmo ? maxAmount : 1); i++)
-                    {
-                        if (!isPlaying)
-                            break;
-                        item.GetComponent<BuildingBlock>().SetTransform(itemTransform);
-                        if (_inSlowmo)
-                            yield return new WaitForSeconds(Time.deltaTime * slowMoFactor);
-                        yield return new WaitForEndOfFrame();
-                    }
-                    if (!isPlaying)
-                        break;
+                    SetTransform(item, itemTransform);
+                    yield return 0;
                 }
 
                 active++;
                 SetZeroVelocity(item);
             }
-            StartRootines(blocks.Select(_rootine));
-            yield return new WaitWhile(() => active != blocks.Length);
-            isPlaying = false;
+
+
+            IEnumerator _exit()
+            {
+                Startroutines(blocks.Select(_mainroutine));
+                yield return new WaitWhile(() => active != blocks.Length);
+                BooleansExit();
+            }
+
+            yield return StartCoroutine(_exit());
         }
 
+        private void BooleansExit()
+        {
+            isPlaying = false;
+            Physics2D.autoSimulation = true; 
+        }
+
+        private void BooleansEnter()
+        {
+            Physics2D.autoSimulation = false;
+            isPlaying = true;
+        }
+
+        internal void SetTransform(GameObject item, BlockTransform itemTransform)
+        {
+            if (itemTransform == default) return;
+            item.transform.position = itemTransform.Position;
+            item.transform.rotation = itemTransform.Rotation;
+        }
 
         public void StopPlaying()
         {
-            StopRootines();
-            isPlaying = false;
-            Physics2D.autoSimulation = true;
-            _inSlowmo = false;
+            Stoproutines();
+            BooleansExit();
         }
 
         public IEnumerator StartPlaying(GameObject[] blocks)
@@ -137,17 +147,16 @@ namespace Assets.Scripts
             return null;
         }
 
-
         public IEnumerator SeekInstant(GameObject[] blocks, float percentage)
         {
             if (percentage < 0) throw new ArgumentOutOfRangeException(nameof(percentage));
             if (percentage > 1) throw new ArgumentOutOfRangeException(nameof(percentage));
             if (isPlaying)
                 yield return new WaitWhile(() => isPlaying);
-            Physics2D.autoSimulation = false;
-            isPlaying = true;
+            BooleansEnter();
+
             var active = 0;
-            IEnumerator _rootine(GameObject block)
+            IEnumerator _mainroutine(GameObject block)
             {
                 active++;
                 var id = GetItemId(block);
@@ -159,48 +168,66 @@ namespace Assets.Scripts
                 }
 
                 if (current != null)
-                    block.GetComponent<BuildingBlock>().SetTransform(current);
-                yield return 0;
+                    SetTransform(block, current);
+                yield return new WaitForEndOfFrame();
 
                 SetZeroVelocity(block);
             }
-            StartRootines(blocks.Select(_rootine));
-            /*var bb = blocks.Select(x => x.GetComponent<BuildingBlock>());
-            foreach (var block in bb)
-                StartCoroutine(block.FromInstantMovement(Movements, percentage));*/
+            Startroutines(blocks.Select(_mainroutine));
 
-            yield return new WaitWhile(() => active != blocks.Length);
-            isPlaying = false;
+
+            IEnumerator _exit()
+            {
+                Startroutines(blocks.Select(_mainroutine));
+                yield return new WaitWhile(() => active != blocks.Length);
+                BooleansExit();
+            }
+
+            yield return StartCoroutine(_exit());
         }
 
-        public void Seek(GameObject[] blocks, float percentage)
+        public IEnumerator Seek(GameObject[] blocks, float percentage)
         {
             if (percentage < 0) throw new ArgumentOutOfRangeException(nameof(percentage));
-            if (percentage > 1) throw new ArgumentOutOfRangeException(nameof(percentage)); 
-            Physics2D.autoSimulation = false;
-            isPlaying = true;
+            if (percentage > 1) throw new ArgumentOutOfRangeException(nameof(percentage));
+            BooleansEnter();
             var active = 0;
-            IEnumerator _rootine(GameObject block)
+
+            IEnumerator _mainroutine(GameObject block)
             {
-                yield return new WaitForSeconds(.5f);
+                yield return InvokeUserActiveObjects();
                 var id = GetItemId(block);
-                active++;
                 foreach (var itemsTransform in Movements.GetForPercentage(id, percentage))
                 {
-                    block.GetComponent<BuildingBlock>().SetTransform(itemsTransform);
+                    // slowmo effect will not affect this blocks
+                    SetTransform(block, itemsTransform);
                     yield return new WaitForEndOfFrame();
                 }
 
+                active++;
                 SetZeroVelocity(block);
+                yield return 0;
             }
-            StartRootines(blocks.Select(_rootine));
 
-            /*var bb = blocks.Select(x => x.GetComponent<BuildingBlock>());
-            foreach (var block in bb)
-                StartCoroutine(block.FromMovement(Movements, percentage));*/
-                 
-            isPlaying = false;
-            Physics2D.autoSimulation = true;
+
+            IEnumerator _exit()
+            {
+                Startroutines(blocks.Select(_mainroutine));
+                yield return new WaitWhile(() => active != blocks.Length);
+                BooleansExit();
+            }
+
+            yield return StartCoroutine(_exit());
+        }
+
+        private IEnumerator InvokeUserActiveObjects()
+        {
+            var editable = GameObject.FindObjectOfType<GameManager>().editable;
+            foreach (var item in editable)
+            {
+            }
+
+            yield return 0;
         }
 
         private void SetZeroVelocity(GameObject block)
@@ -208,31 +235,33 @@ namespace Assets.Scripts
             block.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
         }
 
-
-        public IEnumerator StartSlowmo(GameObject[] blocks)
+        /// <summary>
+        /// There some issues with coroutines
+        /// </summary>
+        /*public IEnumerator StartSlowmo(GameObject[] blocks)
         {
             _inSlowmo = true;
             yield return RewindFor(blocks);
-        }
+        }*/
 
         #endregion
 
-        private void StartRootines(IEnumerable<IEnumerator> rootine)
+        private void Startroutines(IEnumerable<IEnumerator> routine)
         {
-            StopRootines();
-            _rootines = rootine.Select(StartCoroutine).ToArray();
+            Stoproutines();
+            _routines = routine.Select(StartCoroutine).ToArray();
         }
 
-        private void StopRootines()
+        private void Stoproutines()
         {
-            if (_rootines == default || !_rootines.Any()) return;
-            var tmp = _rootines.Where(x => !(x is null)).ToArray();
-            foreach (Coroutine rootine in tmp)
+            if (_routines == default || !_routines.Any()) return;
+            var tmp = _routines.Where(x => !(x is null)).ToArray();
+            foreach (Coroutine routine in tmp)
             {
-                StopCoroutine(rootine);
+                StopCoroutine(routine);
             }
 
-            _rootines = tmp;
+            _routines = tmp;
         }
 
 

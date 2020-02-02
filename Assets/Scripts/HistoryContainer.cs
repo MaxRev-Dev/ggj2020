@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Assets.Scripts
 {
@@ -104,7 +105,7 @@ namespace Assets.Scripts
 
         public bool Forward(string key, out BlockTransform item)
         {
-            if (History.ContainsKey(key) && History[key].Last.Value != default)
+            if (History.ContainsKey(key) && History[key].Last != default)
             {
                 item = PopItemFrom(History, key);
                 AddTo(Pending, key, item);
@@ -132,31 +133,75 @@ namespace Assets.Scripts
 
         public IEnumerable<BlockTransform> GetForPercentage(string id, float percentage)
         {
-            while (true)
+            var percentageLocal = GetPercentageForID(id) * .01f;
+            var isRewind = percentageLocal > percentage;
+            if (Mathf.Abs(percentage - percentageLocal) < .1)
+                return Enumerable.Empty<BlockTransform>();
+            return isRewind ? RewindLoop(id, percentage) : ForwardLoop(id, percentage);
+        }
+
+        private IEnumerable<BlockTransform> ForwardLoop(string id, float perc)
+        {
+            var breakPoint = (int)GetAllFrames(id) * perc;
+            //if (History.ContainsKey(id) && Pending.ContainsKey(id))
+            //    MoveFrom(Pending[id], History[id]);
+            var forId = (History.ContainsKey(id) ? History[id].Count : 0);
+            var diff = Math.Abs(forId - breakPoint);
+            while (diff-- > 0)
+            //    while (breakPoint-- > 0)
             {
-                var isRewind = GetPercentageForID(id) > percentage * 100;
-                if (isRewind)
+                if (Forward(id, out var item))
                 {
-                    if (Rewind(id, out var item))
-                    {
-                        yield return item;
-                    }
+                    yield return item;
                 }
                 else
                 {
-                    if (Forward(id, out var item))
-                    {
-                        yield return item;
-                    }
+                    yield break;
                 }
             }
         }
 
+        private IEnumerable<BlockTransform> RewindLoop(string id, float perc)
+        {
+            var breakPoint = (int)GetAllFrames(id) * perc;
+            //if (History.ContainsKey(id) && Pending.ContainsKey(id))
+            //    MoveFrom(History[id], Pending[id]);
+
+            var forId = (Pending.ContainsKey(id) ? Pending[id].Count : 0);
+            var diff = Math.Abs(forId - breakPoint);
+            while (diff-- > 0)
+            //  while (breakPoint-- > 0)
+            {
+                if (Rewind(id, out var item))
+                {
+                    yield return item;
+                }
+                else
+                {
+                    yield break;
+                }
+            }
+        }
+
+        private void MoveFrom(LinkedList<BlockTransform> source, LinkedList<BlockTransform> dest)
+        {
+            foreach (var item in source.Reverse())
+            {
+                dest.AddLast(item);
+            }
+            source.Clear();
+        }
+
         private float GetPercentageForID(string id)
         {
-            var sum = Pending[id].Count +
-                (History.ContainsKey(id) ? History[id].Count : 0);
+            var sum = GetAllFrames(id);
             return Pending[id].Count * 1f / sum * 100;
+        }
+
+        private float GetAllFrames(string id)
+        {
+            return (Pending.ContainsKey(id) ? Pending[id].Count : 0) +
+                 (History.ContainsKey(id) ? History[id].Count : 0);
         }
     }
 }

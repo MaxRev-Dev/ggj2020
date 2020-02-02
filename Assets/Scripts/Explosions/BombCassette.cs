@@ -8,6 +8,7 @@ namespace Assets.Scripts.Explosions
         private bool exploded;
         public float commonDelay;
         public LayerMask explosionLayers;
+        public bool bombPlanted;
 
 
         // Start is called before the first frame update
@@ -19,8 +20,8 @@ namespace Assets.Scripts.Explosions
         // Update is called once per frame
         void Update()
         {
-            if (exploded) return;
-            exploded = true;
+            if (!bombPlanted) return;
+            bombPlanted = false;
             StartCoroutine(StartExplodeSequence());
         }
 

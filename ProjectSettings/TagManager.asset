@@ -12,6 +12,7 @@ TagManager:
   - ActiveItems
   - Timeline
   - Briefing
+  - Pivot
   layers:
   - Default
   - TransparentFX

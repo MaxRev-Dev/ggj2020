@@ -10,8 +10,8 @@ namespace Assets.Scripts
     public class HistoryManager : MonoBehaviour
     {
         public bool isRecording;
-        public bool isPlaying; 
-        public readonly HistoryContainer Movements = new HistoryContainer(); 
+        public bool isPlaying;
+        public readonly HistoryContainer Movements = new HistoryContainer();
         private Coroutine[] _routines;
         private Coroutine _recordroutine;
 
@@ -20,7 +20,7 @@ namespace Assets.Scripts
         // Update is called once per frame
         void Update()
         {
-             
+
         }
 
         public void Reset()
@@ -95,7 +95,6 @@ namespace Assets.Scripts
         private void BooleansExit()
         {
             isPlaying = false;
-            Physics2D.autoSimulation = true; 
         }
 
         private void BooleansEnter()
@@ -108,7 +107,17 @@ namespace Assets.Scripts
         {
             if (itemTransform == default) return;
             item.transform.position = itemTransform.Position;
-            item.transform.rotation = itemTransform.Rotation;
+            if (item.tag == "ActiveItem")
+            {
+                var m = GameObject.FindObjectOfType<UserAngleState>();
+                item.transform.rotation =
+                    new Quaternion(itemTransform.Rotation.x, itemTransform.Rotation.y,
+                        itemTransform.Rotation.z + m.GetRotation(item), itemTransform.Rotation.w);
+            }
+            else
+            {
+                item.transform.rotation = itemTransform.Rotation;
+            }
         }
 
         public void StopPlaying()
@@ -150,8 +159,6 @@ namespace Assets.Scripts
 
                 SetZeroVelocity(block);
             }
-            Startroutines(blocks.Select(_mainroutine));
-
 
             IEnumerator _exit()
             {

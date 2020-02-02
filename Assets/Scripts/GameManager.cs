@@ -1,17 +1,14 @@
 ﻿using Assets.Scripts.Explosions;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Assets.Scripts
 {
     public class GameManager : MonoBehaviour
-    {
-        public UserAngleState AngleState;
-        public float explosionDuration = 5;
+    { 
+        public float explosionDuration = 4;
         public GameObject[] Blocks;
         private bool _initialized;
         public List<GameObject> editable;
@@ -24,15 +21,38 @@ namespace Assets.Scripts
         // Start is called before the first frame update
         void Start()
         {
+            _cameraBase = Camera.main.transform.position;
+            Timeline = GameObject.FindObjectOfType<TimelineController>();
             Blocks = GameObject.FindObjectsOfType<BuildingBlock>().Select(x => x.gameObject).ToArray();
             RandomizeActiveObjects();
             ShowBriefing();
         }
 
+        // Update is called once per frame
+        void Update()
+        {
+            if (_startRecord)
+            {
+                Debug.Log("Recording started");
+                _startRecord = false;
+                StartRecordWithDelay(0);
+            }
+
+            if (_cameraMovement)
+            {
+                CameraMoveToActiveObject();
+            }
+        }
+
+        public void StartExplosion()
+        {
+            var cassette = GameObject.FindObjectOfType<BombCassette>();
+            cassette.bombPlanted = true;
+        }
+
         public void OnPauseClick()
         {
-            // enable pause
-            CameraReset();
+            // enable pause 
             ShowBriefing();
         }
 
@@ -42,7 +62,6 @@ namespace Assets.Scripts
         {
             var briefing = GameObject.FindGameObjectWithTag("Briefing");
             briefing.GetComponentInChildren<Animator>().SetBool("is_ON", isOn);
-
         }
 
 
@@ -54,36 +73,58 @@ namespace Assets.Scripts
         public void CloseBriefing()
         {
             Briefing(false);
+
+            if (!_exploded)
+            {
+                _exploded = true;
+                StartExplosion();
+            }
+
+            _startRecord = true;
         }
 
         #endregion
 
-        // Update is called once per frame
-        void Update()
+        #region Pivot
+
+
+        private void Pivot(bool isOn)
         {
-            if (_initialized) return;
-            _initialized = true;
-            var cassette = GameObject.FindObjectOfType<BombCassette>();
-            StartRecordWithDelay(cassette.commonDelay);
-            StartCoroutine(WaitAndStopRecord());
-            //TEST_StartInterceptor();
+            var pivot = GameObject.FindGameObjectWithTag("Pivot");
+            pivot.GetComponent<Animator>().SetBool("is_ON", isOn);
         }
+        public void ShowPivot()
+        {
+            Pivot(true);
+        }
+
+        public void ClosePivot()
+        {
+            Pivot(false);
+        }
+
+        #endregion
+
 
         private void RandomizeActiveObjects()
         {
             var rand = GetComponent<Randomizer>();
             editable = rand.Generate(Blocks);
-            activeOne = rand.GenerateOne(Blocks);
-            activeOne.tag = "Active";
-            _cameraMovement = true;
             foreach (var item in editable)
             {
                 item.tag = "ActiveItems";
                 item.GetComponent<SpriteRenderer>().color = Color.blue;
             }
+
+            activeOne = editable.Last();
+            activeOne.GetComponent<SpriteRenderer>().color = Color.green;
+            _cameraMovement = true;
         }
 
-        private float _activeZoffset = 20;
+        private float _activeZoffset = 25;
+        private bool _startRecord;
+        private bool _exploded;
+        private bool _enableZoom = true;
 
         public void CameraMoveToActiveObject()
         {
@@ -91,11 +132,16 @@ namespace Assets.Scripts
             if (item == default) return;
             if (!_cameraMovement) return;
             var v3 = item.transform.position;
-            _activeZoffset -= 0.1f;
-            if (_activeZoffset < 0) _cameraMovement = false;
-            var vector3 = new Vector3(v3.x, v3.y, _activeZoffset);
-            Camera.main.transform.position =
-                Vector3.Lerp(Camera.main.transform.position, vector3, Time.deltaTime * .1f);
+            if (_enableZoom && _activeZoffset > 20)
+                _activeZoffset -= 0.1f;
+            else
+            {
+                _enableZoom = false;
+                _activeZoffset = 20;
+            }
+            var vector3 = new Vector3(v3.x, v3.y, _activeZoffset); Camera.main.transform.LookAt(v3);
+            //Camera.main.transform.position =
+            //    Vector3.Lerp(Camera.main.transform.position, vector3, Time.deltaTime * .1f);
         }
 
         private GameObject GetActiveItem()
@@ -108,6 +154,70 @@ namespace Assets.Scripts
         {
             Camera.main.transform.position = _cameraBase;
         }
+
+        private void StartRecordWithDelay(float delay)
+        {
+            IEnumerator _rootine()
+            {
+                yield return new WaitForSeconds(delay);
+                var history = GetHistory();
+                history.StartRecord(Blocks);
+                StartCoroutine(WaitAndStopRecord());
+            }
+            StartCoroutine(_rootine());
+        }
+
+        private HistoryManager GetHistory()
+        {
+            var level = GameObject.FindGameObjectWithTag("Level");
+            return level.GetComponent<HistoryManager>();
+        }
+
+        private IEnumerator WaitAndStopRecord()
+        {
+            yield return new WaitForSeconds(explosionDuration);
+
+            var history = GetHistory();
+            history.StopRecord();
+            Timeline.CanRewind = true;
+            DisablePhysics();
+            Debug.Log($"Recording stopped: {history.Movements.Count} items, frames: {history.Movements.First().Value.Count}");
+        }
+
+        private void DisablePhysics()
+        {
+            Physics2D.autoSimulation = false;
+        }
+
+        public void TurnActiveObjectRight()
+        {
+            var m = GetActiveItem();
+            GameObject.FindObjectOfType<UserAngleState>().TurnRight(m);
+        }
+
+        public void TurnActiveObjectLeft()
+        {
+            var m = GetActiveItem();
+            GameObject.FindObjectOfType<UserAngleState>().TurnLeft(m);
+        }
+
+        public void RewindOnce()
+        {
+            if (Timeline.RewindOnce())
+            {
+                ShowPivot();
+                RepositionCamera();
+
+            }
+        }
+
+        private void RepositionCamera()
+        {
+            _cameraMovement = true;
+        }
+
+
+        #region TEST
 
         private void TEST_StartInterceptor()
         {
@@ -132,47 +242,9 @@ namespace Assets.Scripts
             StartCoroutine(_rootine());
         }
 
-        private void StartRecordWithDelay(float delay)
-        {
-            IEnumerator _rootine()
-            {
-                yield return new WaitForSeconds(delay);
-                var history = GetHistory();
-                history.StartRecord(Blocks);
-            }
-            StartCoroutine(_rootine());
-        }
 
-        private HistoryManager GetHistory()
-        {
-            var level = GameObject.FindGameObjectWithTag("Level");
-            return level.GetComponent<HistoryManager>();
-        }
 
-        private IEnumerator WaitAndStopRecord()
-        {
-            yield return new WaitForSeconds(3);
-
-            var history = GetHistory();
-            history.StopRecord();
-        }
-
-        public void TurnActiveObjectRight()
-        {
-            var m = GetActiveItem();
-            AngleState.TurnRight(m);
-        }
-
-        public void TurnActiveObjectLeft()
-        {
-            var m = GetActiveItem();
-            AngleState.TurnLeft(m);
-        }
-
-        public void RewindOnce()
-        {
-            Timeline.RewindOnce();
-        }
+        #endregion
     }
 
 }

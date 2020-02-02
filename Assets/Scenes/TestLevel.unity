@@ -454,6 +454,7 @@ MonoBehaviour:
   explosionLayers:
     serializedVersion: 2
     m_Bits: 256
+  bombPlanted: 0
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -2301,6 +2302,7 @@ GameObject:
   - component: {fileID: 1200873247}
   - component: {fileID: 1200873248}
   - component: {fileID: 1200873249}
+  - component: {fileID: 1200873250}
   m_Layer: 0
   m_Name: Level
   m_TagString: Level
@@ -2359,8 +2361,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1efc634820c7894e86a9da0f1fbf56b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AngleState: {fileID: 0}
   explosionDuration: 5
+  Blocks: []
   editable: []
   Timeline: {fileID: 0}
   activeOne: {fileID: 0}
@@ -2406,6 +2408,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cueGameObject: {fileID: 422042137929657499, guid: 4f1a3e1142edf6a4c9f4aae1ac310ec6,
     type: 3}
+  padBetween: 2
+  padBounds: 3
+  maxCue: 3
+--- !u!114 &1200873250
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1200873244}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 458a07d5be477bb48b0afe7a185aa5e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1229269164
 GameObject:
   m_ObjectHideFlags: 0
@@ -3287,6 +3304,16 @@ PrefabInstance:
       propertyPath: btn_close
       value: 
       objectReference: {fileID: 2066708662}
+    - target: {fileID: 1123731405180728755, guid: ed83e3bc54d37ad438911e28dd85e879,
+        type: 3}
+      propertyPath: m_TagString
+      value: Pivot
+      objectReference: {fileID: 0}
+    - target: {fileID: 2982410915279576300, guid: ed83e3bc54d37ad438911e28dd85e879,
+        type: 3}
+      propertyPath: m_TagString
+      value: Pivot
+      objectReference: {fileID: 0}
     - target: {fileID: 3079925776086115565, guid: ed83e3bc54d37ad438911e28dd85e879,
         type: 3}
       propertyPath: m_TagString

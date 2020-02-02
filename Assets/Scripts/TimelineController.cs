@@ -22,6 +22,12 @@ namespace Assets.Scripts
         private GameManager gman;
         public GameObject cueGameObject;
         private LinkedList<int> points;
+        private int _current = -1;
+        private int maxScale = 26;
+        public int padBetween = 2;
+        public int padBounds = 3;
+        public int maxCue = 3;
+        public bool CanRewind { get; set; }
 
         private void GenerateStartPoints()
         {
@@ -37,13 +43,11 @@ namespace Assets.Scripts
             }
         }
 
+        float perc(float num) => num * 1.0f / maxScale;
+
         IEnumerable<int> GetPointsByRule()
         {
-            int padBetween = 1;
-            int padBounds = 3;
-            int maxCue = 3;
-
-            int GetNext() => Random.Range(1 + padBounds, 26 - padBounds);
+            int GetNext() => Random.Range(1 + padBounds, maxScale - padBounds);
 
             var list = new List<int>();
 
@@ -53,12 +57,13 @@ namespace Assets.Scripts
                 if (list.Contains(num))
                     continue;
                 bool ok = true;
-
                 foreach (var i in list)
                 {
                     if (i + padBetween == num) ok = false;
                     if (i - padBetween == num) ok = false;
+                    if (Mathf.Abs(perc(num) - perc(i)) < 0.1) ok = false;
                 }
+
 
                 if (ok)
                 {
@@ -100,10 +105,15 @@ namespace Assets.Scripts
         }
 
 
-        public void RewindOnce()
+        public bool RewindOnce()
         {
-            var next = points.Last();
-            StartCoroutine(hman.Seek(gman.Blocks, (next * 1.0f/ 26) * .1f));
+            if (!CanRewind) return false;
+            _current = _current == -1 ? points.Last.Value : points.Find(_current).Previous?.Value ?? points.Last.Value;
+            var target = (_current * 1.0f / 26);
+            Debug.Log($"Target: {target}");
+            //StartCoroutine(hman.SeekInstant(gman.Blocks, target));
+            StartCoroutine(hman.Seek(gman.Blocks, target));
+            return true;
         }
     }
 }

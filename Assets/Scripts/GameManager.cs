@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Assets.Scripts
 {
     public class GameManager : MonoBehaviour
-    { 
+    {
         public float explosionDuration = 4;
         public GameObject[] Blocks;
         private bool _initialized;
@@ -21,10 +21,10 @@ namespace Assets.Scripts
         // Start is called before the first frame update
         void Start()
         {
-            _cameraBase = Camera.main.transform.position;
-            Timeline = GameObject.FindObjectOfType<TimelineController>();
             Blocks = GameObject.FindObjectsOfType<BuildingBlock>().Select(x => x.gameObject).ToArray();
+            _cameraBase = Camera.main.transform.position;
             RandomizeActiveObjects();
+            Timeline = GameObject.FindObjectOfType<TimelineController>();
             ShowBriefing();
         }
 
@@ -43,10 +43,15 @@ namespace Assets.Scripts
                 CameraMoveToActiveObject();
             }
         }
+        public GameObject GetRandomEditableObject()
+        {
+            var rand = FindObjectOfType<Randomizer>();
+            return rand.GetCurrentRand();
+        }
 
         public void StartExplosion()
         {
-            var cassette = GameObject.FindObjectOfType<BombCassette>();
+            var cassette = FindObjectOfType<BombCassette>();
             cassette.bombPlanted = true;
         }
 
@@ -76,11 +81,11 @@ namespace Assets.Scripts
 
             if (!_exploded)
             {
+                _startRecord = true;
                 _exploded = true;
                 StartExplosion();
             }
 
-            _startRecord = true;
         }
 
         #endregion
@@ -95,7 +100,7 @@ namespace Assets.Scripts
         }
         public void ShowPivot()
         {
-            Pivot(true);
+            Pivot(true); 
         }
 
         public void ClosePivot()
@@ -108,7 +113,7 @@ namespace Assets.Scripts
 
         private void RandomizeActiveObjects()
         {
-            var rand = GetComponent<Randomizer>();
+            var rand = GameObject.FindObjectOfType<Randomizer>();
             editable = rand.Generate(Blocks);
             foreach (var item in editable)
             {
@@ -116,9 +121,7 @@ namespace Assets.Scripts
                 item.GetComponent<SpriteRenderer>().color = Color.blue;
             }
 
-            activeOne = editable.Last();
-            activeOne.GetComponent<SpriteRenderer>().color = Color.green;
-            _cameraMovement = true;
+            activeOne = editable.Last(); 
         }
 
         private float _activeZoffset = 25;
@@ -180,7 +183,7 @@ namespace Assets.Scripts
             var history = GetHistory();
             history.StopRecord();
             Timeline.CanRewind = true;
-            DisablePhysics();
+            DisablePhysics();  
             Debug.Log($"Recording stopped: {history.Movements.Count} items, frames: {history.Movements.First().Value.Count}");
         }
 
@@ -204,14 +207,15 @@ namespace Assets.Scripts
         public void RewindOnce()
         {
             if (Timeline.RewindOnce())
-            {
+            { 
                 ShowPivot();
                 RepositionCamera();
 
             }
         }
 
-        private void RepositionCamera()
+
+        public void RepositionCamera()
         {
             _cameraMovement = true;
         }
@@ -245,6 +249,7 @@ namespace Assets.Scripts
 
 
         #endregion
+
     }
 
 }

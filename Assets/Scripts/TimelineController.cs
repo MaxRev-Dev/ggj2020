@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Assets.Scripts
@@ -11,11 +12,10 @@ namespace Assets.Scripts
         // Start is called before the first frame update
         void Start()
         {
-            InitTimeline();
-
-            GenerateStartPoints();
             hman = GameObject.FindObjectOfType<HistoryManager>();
             gman = GameObject.FindObjectOfType<GameManager>();
+            InitTimeline();
+            GenerateStartPoints();
         }
 
         private HistoryManager hman;
@@ -27,20 +27,41 @@ namespace Assets.Scripts
         public int padBetween = 2;
         public int padBounds = 3;
         public int maxCue = 3;
+        private LayoutElement[] pointPlace;
         public bool CanRewind { get; set; }
+        public Dictionary<int, GameObject> Map = new Dictionary<int, GameObject>();
+        private int activeIndex;
+        private bool _initialized;
+        private bool _pointsReady;
 
         private void GenerateStartPoints()
         {
             points = new LinkedList<int>(GetPointsByRule());
             var timeline = GameObject.FindGameObjectWithTag("Timeline");
-            var pointPlace = timeline.GetComponentsInChildren<LayoutElement>().Where(x => x.name.StartsWith("item_"))
-                .ToArray();
+            pointPlace = timeline.GetComponentsInChildren<LayoutElement>()
+              .Where(x => x.name.StartsWith("item_"))
+              .ToArray();
 
             foreach (var point in points)
             {
                 var place = pointPlace.ElementAt(point);
-                Instantiate(cueGameObject, place.gameObject.transform);
+                var gm = Instantiate(cueGameObject, place.gameObject.transform);
+                var btn = gm.gameObject.GetComponentInChildren<Button>();
+                btn.name = btn.name + '.' + point;
+                btn.onClick.AddListener(delegate { Callback(btn); });
+
             }
+        }
+
+        private void Callback(Button btn)
+        {
+            this.activeIndex = int.Parse(btn.name.Substring(btn.name.IndexOf('.') + 1));
+            var index = points.ToList().FindIndex(x => x == activeIndex);
+
+            var target = (points.ElementAt(index) * 1.0f / 26);
+            StartCoroutine(hman.SeekInstant(gman.Blocks, target));
+            ChangeActive();
+            gman.RepositionCamera();
         }
 
         float perc(float num) => num * 1.0f / maxScale;
@@ -101,7 +122,20 @@ namespace Assets.Scripts
         // Update is called once per frame
         void Update()
         {
+            if (_initialized) return;
+            _initialized = true;
+        }
 
+        private void InitPointsForce()
+        {
+            foreach (var point in points)
+                while (true)
+                {
+                    var item = gman.GetRandomEditableObject();
+                    if (Map.ContainsValue(item)) continue;
+                    Map.Add(point, item);
+                    break;
+                }
         }
 
 
@@ -111,9 +145,24 @@ namespace Assets.Scripts
             _current = _current == -1 ? points.Last.Value : points.Find(_current).Previous?.Value ?? points.Last.Value;
             var target = (_current * 1.0f / 26);
             Debug.Log($"Target: {target}");
-            //StartCoroutine(hman.SeekInstant(gman.Blocks, target));
-            StartCoroutine(hman.Seek(gman.Blocks, target));
+            StartCoroutine(hman.SeekInstant(gman.Blocks, target));
+            ChangeActive();
+            //StartCoroutine(hman.Seek(gman.Blocks, target));
             return true;
+        }
+
+        private void ChangeActive()
+        {
+            if (!Map.Any()) InitPointsForce();
+            gman.activeOne = Map[activeIndex];
+
+            foreach (var item in gman.editable)
+            {
+                item.GetComponent<SpriteRenderer>().color = Color.blue;
+            }
+            gman.activeOne.GetComponent<SpriteRenderer>().color = Color.green;
+
+            gman.ShowPivot();
         }
     }
 }

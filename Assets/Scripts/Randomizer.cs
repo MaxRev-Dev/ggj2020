@@ -12,7 +12,6 @@ namespace Assets.Scripts
         // Start is called before the first frame update
         void Start()
         {
-            Items = new List<GameObject>();
         }
 
         // Update is called once per frame
@@ -36,6 +35,12 @@ namespace Assets.Scripts
             }
 
             return Items = Items.OrderBy(x => Random.Range(0f, 1f)).ToList();
+        }
+
+        public GameObject GetCurrentRand()
+        {
+            int index = Random.Range(0, Items.Count);
+            return Items[index];
         }
     }
 }

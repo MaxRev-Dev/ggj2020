@@ -107,7 +107,7 @@ namespace Assets.Scripts
         {
             if (itemTransform == default) return;
             item.transform.position = itemTransform.Position;
-            if (item.tag == "ActiveItem")
+            if (item.tag == "ActiveItems")
             {
                 var m = GameObject.FindObjectOfType<UserAngleState>();
                 item.transform.rotation =

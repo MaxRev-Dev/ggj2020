@@ -20,30 +20,7 @@ namespace Assets.Scripts
         // Update is called once per frame
         void Update()
         {
-
-            //if (enableSlowmo)
-            //{
-
-            //    if (!_inSlowmo)
-            //    {
-            //        _inSlowmo = true;
-            //        if (Math.Abs(Time.timeScale - 1.0f) < 0.001)
-            //            Time.timeScale = 0.5f;
-            //        else
-            //            Time.timeScale = 1.0f;
-            //        Time.fixedDeltaTime = 0.02f * Time.timeScale;
-            //    }
-            //}
-            //if (Math.Abs(Time.timeScale - 0.5f) < 0.001)
-            //{
-            //    currentAmount += Time.deltaTime;
-            //}
-
-            //if (currentAmount > maxAmount)
-            //{
-            //    currentAmount = 0f;
-            //    Time.timeScale = 1.0f;
-            //}
+             
         }
 
         public void Reset()

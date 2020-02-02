@@ -643,8 +643,9 @@ GameObject:
   - component: {fileID: 422042139069837552}
   - component: {fileID: 422042139069837554}
   - component: {fileID: 422042139069837553}
+  - component: {fileID: 1064922766199801573}
   m_Layer: 5
-  m_Name: redGlow
+  m_Name: glow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -705,6 +706,18 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!225 &1064922766199801573
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 422042139069837567}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &422042139246138868
 GameObject:
   m_ObjectHideFlags: 0
@@ -825,7 +838,7 @@ Animator:
   m_GameObject: {fileID: 422042139459116150}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 55f181fafa0fba448a7dafb24c68545e, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

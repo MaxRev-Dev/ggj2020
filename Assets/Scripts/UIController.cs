@@ -8,6 +8,7 @@ public class UIController : MonoBehaviour
     public Button btn_edited;
     public Button btn_completed;
 
+    public Button btn_close;
     public Button btn_pause;
     public Button btn_rewind;
     public Button btn_turnStep_left;
@@ -17,6 +18,7 @@ public class UIController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        btn_close.onClick.AddListener(OnBriefingClose);
         btn_rewind.onClick.AddListener(OnRewindClick);
         btn_pause.onClick.AddListener(OnPauseClick);
         //btn_warning.onClick.AddListener(OnWarningClick);
@@ -25,6 +27,11 @@ public class UIController : MonoBehaviour
         btn_turnStep_left.onClick.AddListener(OnTurnLeftClick);
         btn_turnStep_right.onClick.AddListener(OnTurnRightClick);
         manager = GameObject.FindObjectOfType<GameManager>();
+    }
+
+    private void OnBriefingClose()
+    { 
+        manager.CloseBriefing();
     }
 
     // Update is called once per frame
@@ -68,7 +75,7 @@ public class UIController : MonoBehaviour
     }
 
     private void OnPauseClick()
-    {  
-        // in menu
+    {
+        manager.OnPauseClick();
     }
 }

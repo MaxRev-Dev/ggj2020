@@ -25,48 +25,42 @@ namespace Assets.Scripts
         void Start()
         {
             _blocks = GameObject.FindObjectsOfType<BuildingBlock>().Select(x => x.gameObject).ToArray();
+            RandomizeActiveObjects();
+            ShowBriefing();
         }
 
-        private void OnPauseClick()
+        public void OnPauseClick()
         {
             // enable pause
             CameraReset();
+            ShowBriefing();
+        }
+
+        private void Briefing(bool isOn)
+        {
+            var briefing = GameObject.FindGameObjectWithTag("Briefing");
+            briefing.GetComponentInChildren<Animator>().SetBool("is_ON", isOn);
+
+        }
+        public void ShowBriefing()
+        {
+            Briefing(true);
+        }
+
+        public void CloseBriefing()
+        {
+            Briefing(false);
         }
 
         // Update is called once per frame
         void Update()
         {
-            InitTimeline();
-            CameraMoveToActiveObject();
             if (_initialized) return;
             _initialized = true;
-            RandomizeActiveObjects();
             var cassette = GameObject.FindObjectOfType<BombCassette>();
             StartRecordWithDelay(cassette.commonDelay);
             StartCoroutine(WaitAndStopRecord());
-            TEST_StartInterceptor();
-        }
-
-        private void InitTimeline()
-        {
-            var timeline = GameObject.FindGameObjectWithTag("Timeline");
-            var ch = timeline.GetComponentsInChildren<Text>();
-            var fill = timeline.GetComponentsInChildren<RectTransform>().Where(x => x.name.Contains("fill")).ToArray();
-
-            // strange part. edit only if you know what you're doing
-            var ir = new double[100];
-            double _k = 5;
-            for (int i = -50; i < 50; i++)
-            {
-                var v = i * .57;
-                ir[i + 50] = ((Math.Cos(v) - 1.5) * .5 / 1.6 * v) * 3;
-            }
-            for (int i = 0, j = 10; i < ch.Length; i++, j++)
-            {
-                ch[i].text = ir[j].ToString("F1");
-                if (i > fill.Length - 1) continue;
-                fill[i].sizeDelta = new Vector2(25, (float)ir[i]);
-            }
+            //TEST_StartInterceptor();
         }
 
         private void RandomizeActiveObjects()

@@ -8,34 +8,34 @@ namespace Assets.Scripts
 {
     public class HistoryContainer : IDictionary<string, LinkedList<BlockTransform>>
     {
-        private readonly Dictionary<string, LinkedList<BlockTransform>> Pending
+        private readonly Dictionary<string, LinkedList<BlockTransform>> Sequence
             = new Dictionary<string, LinkedList<BlockTransform>>();
         private readonly Dictionary<string, LinkedList<BlockTransform>> History
             = new Dictionary<string, LinkedList<BlockTransform>>();
 
         public IEnumerator<KeyValuePair<string, LinkedList<BlockTransform>>> GetEnumerator()
         {
-            return Pending.GetEnumerator();
+            return Sequence.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return ((IEnumerable)Pending).GetEnumerator();
+            return ((IEnumerable)Sequence).GetEnumerator();
         }
 
         public void Add(KeyValuePair<string, LinkedList<BlockTransform>> item)
         {
-            Pending.Add(item.Key, item.Value);
+            Sequence.Add(item.Key, item.Value);
         }
 
         public void Clear()
         {
-            Pending.Clear();
+            Sequence.Clear();
         }
 
         public bool Contains(KeyValuePair<string, LinkedList<BlockTransform>> item)
         {
-            return Pending.Contains(item);
+            return Sequence.Contains(item);
         }
 
         public void CopyTo(KeyValuePair<string, LinkedList<BlockTransform>>[] array, int arrayIndex)
@@ -45,58 +45,61 @@ namespace Assets.Scripts
 
         public bool Remove(KeyValuePair<string, LinkedList<BlockTransform>> item)
         {
-            return Pending.Remove(item.Key);
+            return Sequence.Remove(item.Key);
         }
 
-        public int Count => Pending.Count;
+        public int Count => Sequence.Count;
 
-        public bool IsReadOnly => ((ICollection<KeyValuePair<string, LinkedList<BlockTransform>>>)Pending).IsReadOnly;
+        public bool IsReadOnly => ((ICollection<KeyValuePair<string, LinkedList<BlockTransform>>>)Sequence).IsReadOnly;
 
         public void Add(string key, LinkedList<BlockTransform> value)
         {
-            Pending.Add(key, value);
+            Sequence.Add(key, value);
         }
 
         public bool ContainsKey(string key)
         {
-            return Pending.ContainsKey(key);
+            return Sequence.ContainsKey(key);
         }
 
         public bool Remove(string key)
         {
-            return Pending.Remove(key);
+            return Sequence.Remove(key);
         }
 
         public bool TryGetValue(string key, out LinkedList<BlockTransform> value)
         {
-            return Pending.TryGetValue(key, out value);
+            return Sequence.TryGetValue(key, out value);
         }
 
         public LinkedList<BlockTransform> this[string key]
         {
-            get => Pending[key];
-            set => Pending[key] = value;
+            get => Sequence[key];
+            set => Sequence[key] = value;
         }
 
-        public ICollection<string> Keys => ((IDictionary<string, LinkedList<BlockTransform>>)Pending).Keys;
+        public ICollection<string> Keys => ((IDictionary<string, LinkedList<BlockTransform>>)Sequence).Keys;
 
-        public ICollection<LinkedList<BlockTransform>> Values => ((IDictionary<string, LinkedList<BlockTransform>>)Pending).Values;
+        public ICollection<LinkedList<BlockTransform>> Values => ((IDictionary<string, LinkedList<BlockTransform>>)Sequence).Values;
 
         public void Add(string key, BlockTransform transformRotation)
         {
-            if (!Pending.ContainsKey(key))
+            if (!Sequence.ContainsKey(key))
             {
-                Pending[key] = new LinkedList<BlockTransform>();
+                Sequence[key] = new LinkedList<BlockTransform>();
             }
-            Pending[key].AddLast(transformRotation);
+            Sequence[key].AddLast(transformRotation);
         }
 
         public bool Rewind(string key, out BlockTransform item)
         {
-            if (Pending.ContainsKey(key) && Pending[key].Last != default)
+            if (Sequence.ContainsKey(key) && Sequence[key].Last != default)
             {
-                item = PopItemFrom(Pending, key);
-                AddTo(History, key, item);
+                item = Sequence[key].Last.Value;
+                Sequence[key].RemoveLast();
+                if (!History.ContainsKey(key))
+                    History[key] = new LinkedList<BlockTransform>();
+                History[key].AddFirst(item);
                 return true;
             }
             item = default;
@@ -105,21 +108,19 @@ namespace Assets.Scripts
 
         public bool Forward(string key, out BlockTransform item)
         {
-            if (History.ContainsKey(key) && History[key].Last != default)
+            if (History.ContainsKey(key) && History[key].First != default)
             {
-                item = PopItemFrom(History, key);
-                AddTo(Pending, key, item);
+                item = History[key].First.Value;
+                History[key].RemoveFirst();
+                if (!Sequence.ContainsKey(key))
+                    Sequence[key] = new LinkedList<BlockTransform>();
+                Sequence[key].AddLast(item);
                 return true;
             }
             item = default;
             return false;
         }
-        private BlockTransform PopItemFrom(Dictionary<string, LinkedList<BlockTransform>> list, string key)
-        {
-            var item = list[key].Last.Value;
-            list[key].RemoveLast();
-            return item;
-        }
+
 
         void AddTo(Dictionary<string, LinkedList<BlockTransform>> list, string key, BlockTransform block)
         {
@@ -131,56 +132,35 @@ namespace Assets.Scripts
             list[key].AddLast(block);
         }
 
-        public IEnumerable<BlockTransform> GetForPercentage(string id, float percentage)
+        public IEnumerable<BlockTransform> GetForPercentage(string id, float percentage, bool allFrames)
         {
             var percentageLocal = GetPercentageForID(id) * .01f;
-            var isRewind = percentageLocal > percentage;
-            if (Mathf.Abs(percentage - percentageLocal) < .1)
-                return Enumerable.Empty<BlockTransform>();
-            return isRewind ? RewindLoop(id, percentage) : ForwardLoop(id, percentage);
+            var isRewind = percentageLocal >= percentage;
+            //if (Mathf.Abs(percentage - percentageLocal) < .1)
+            //    return Enumerable.Empty<BlockTransform>();
+            return isRewind ? RewindLoop(id, percentage, allFrames) : ForwardLoop(id, percentage, allFrames);
         }
 
-        private IEnumerable<BlockTransform> ForwardLoop(string id, float perc)
+        private IEnumerable<BlockTransform> ForwardLoop(string id, float perc, bool allFrames)
         {
             var breakPoint = (int)GetAllFrames(id) * perc;
-            //if (History.ContainsKey(id) && Pending.ContainsKey(id))
-            //    MoveFrom(Pending[id], History[id]);
-            var forId = (History.ContainsKey(id) ? History[id].Count : 0);
-            var diff = Math.Abs(forId - breakPoint);
-            while (diff-- > 0)
-            //    while (breakPoint-- > 0)
-            {
-                if (Forward(id, out var item))
-                {
+
+            if (allFrames)
+                foreach (var item in Sequence[id].Take((int) breakPoint))
                     yield return item;
-                }
-                else
-                {
-                    yield break;
-                }
-            }
+            else
+                yield return Sequence[id].ElementAt((int)breakPoint); 
         }
 
-        private IEnumerable<BlockTransform> RewindLoop(string id, float perc)
+        private IEnumerable<BlockTransform> RewindLoop(string id, float perc, bool allFrames)
         {
             var breakPoint = (int)GetAllFrames(id) * perc;
-            //if (History.ContainsKey(id) && Pending.ContainsKey(id))
-            //    MoveFrom(History[id], Pending[id]);
 
-            var forId = (Pending.ContainsKey(id) ? Pending[id].Count : 0);
-            var diff = Math.Abs(forId - breakPoint);
-            while (diff-- > 0)
-            //  while (breakPoint-- > 0)
-            {
-                if (Rewind(id, out var item))
-                {
+            if (allFrames)
+                foreach (var item in Sequence[id].Reverse().Take((int) breakPoint))
                     yield return item;
-                }
-                else
-                {
-                    yield break;
-                }
-            }
+            else
+                yield return Sequence[id].ElementAt((int)breakPoint); 
         }
 
         private void MoveFrom(LinkedList<BlockTransform> source, LinkedList<BlockTransform> dest)
@@ -195,12 +175,12 @@ namespace Assets.Scripts
         private float GetPercentageForID(string id)
         {
             var sum = GetAllFrames(id);
-            return Pending[id].Count * 1f / sum * 100;
+            return Sequence[id].Count * 1f / sum * 100;
         }
 
         private float GetAllFrames(string id)
         {
-            return (Pending.ContainsKey(id) ? Pending[id].Count : 0) +
+            return (Sequence.ContainsKey(id) ? Sequence[id].Count : 0) +
                  (History.ContainsKey(id) ? History[id].Count : 0);
         }
     }

@@ -44,7 +44,8 @@ namespace Assets.Scripts
             var id = HistoryManager.GetItemId(o);
             if (!List.ContainsKey(id))
             {
-                List[id] = rotateAmount;
+                List[id] = -rotateAmount;
+                o.transform.Rotate(0, 0, -rotateAmount);
             }
             else
             {
@@ -62,14 +63,15 @@ namespace Assets.Scripts
             var id = HistoryManager.GetItemId(o);
             if (!List.ContainsKey(id))
             {
-                List[id] = -rotateAmount;
+                o.transform.Rotate(0, 0, rotateAmount);
+                List[id] = rotateAmount;
             }
             else
             {
                 var current = List[id];
                 if (current < maxRotateAmount)
                 {
-                    List[id] += rotateAmount; 
+                    List[id] += rotateAmount;
                     o.transform.Rotate(0, 0, rotateAmount);
                 }
             }

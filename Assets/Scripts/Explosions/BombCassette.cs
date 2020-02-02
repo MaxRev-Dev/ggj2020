@@ -4,8 +4,7 @@ using UnityEngine;
 namespace Assets.Scripts.Explosions
 {
     public class BombCassette : MonoBehaviour
-    {
-        private bool exploded;
+    { 
         public float commonDelay;
         public LayerMask explosionLayers;
         public bool bombPlanted;

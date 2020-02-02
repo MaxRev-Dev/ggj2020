@@ -15,8 +15,6 @@ namespace Assets.Scripts
         private Coroutine[] _routines;
         private Coroutine _recordroutine;
 
-        private BlockTransform target;
-
         // Update is called once per frame
         void Update()
         {
@@ -64,6 +62,8 @@ namespace Assets.Scripts
 
         public IEnumerator RewindFor(GameObject[] blocks)
         {
+            if (isPlaying) yield break;
+
             BooleansEnter();
             var active = 0;
 
@@ -79,6 +79,7 @@ namespace Assets.Scripts
 
                 active++;
                 SetZeroVelocity(item);
+                yield return 0;
             }
 
 
@@ -99,20 +100,24 @@ namespace Assets.Scripts
 
         private void BooleansEnter()
         {
-            Physics2D.autoSimulation = false;
+            Physics2D.autoSimulation = false; 
             isPlaying = true;
         }
 
         internal void SetTransform(GameObject item, BlockTransform itemTransform)
         {
             if (itemTransform == default) return;
+
+            var m = GameObject.FindObjectOfType<UserAngleState>();
+
             item.transform.position = itemTransform.Position;
+
             if (item.tag == "ActiveItems")
             {
-                var m = GameObject.FindObjectOfType<UserAngleState>();
-                item.transform.rotation =
-                    new Quaternion(itemTransform.Rotation.x, itemTransform.Rotation.y,
-                        itemTransform.Rotation.z + m.GetRotation(item), itemTransform.Rotation.w);
+                item.transform.Rotate(0, 0, itemTransform.Rotation.z-m.GetRotation(item));
+                //item.transform.rotation =
+                //    new Quaternion(itemTransform.Rotation.x, itemTransform.Rotation.y,
+                //        itemTransform.Rotation.z + m.GetRotation(item), itemTransform.Rotation.w); 
             }
             else
             {
@@ -138,7 +143,7 @@ namespace Assets.Scripts
             if (percentage < 0) throw new ArgumentOutOfRangeException(nameof(percentage));
             if (percentage > 1) throw new ArgumentOutOfRangeException(nameof(percentage));
             if (isPlaying)
-                yield return new WaitWhile(() => isPlaying);
+                yield break;
             BooleansEnter();
 
             var active = 0;
@@ -147,7 +152,7 @@ namespace Assets.Scripts
                 active++;
                 var id = GetItemId(block);
                 BlockTransform current = null;
-                foreach (var itemsTransform in Movements.GetForPercentage(id, percentage))
+                foreach (var itemsTransform in Movements.GetForPercentage(id, percentage, false))
                 {
                     current = itemsTransform;
                     yield return 0;
@@ -179,9 +184,8 @@ namespace Assets.Scripts
 
             IEnumerator _mainroutine(GameObject block)
             {
-                yield return InvokeUserActiveObjects();
                 var id = GetItemId(block);
-                foreach (var itemsTransform in Movements.GetForPercentage(id, percentage))
+                foreach (var itemsTransform in Movements.GetForPercentage(id, percentage, true))
                 {
                     // slowmo effect will not affect this blocks
                     SetTransform(block, itemsTransform);
@@ -204,29 +208,12 @@ namespace Assets.Scripts
             yield return StartCoroutine(_exit());
         }
 
-        private IEnumerator InvokeUserActiveObjects()
-        {
-            var editable = GameObject.FindObjectOfType<GameManager>().editable;
-            foreach (var item in editable)
-            {
-            }
-
-            yield return 0;
-        }
 
         private void SetZeroVelocity(GameObject block)
         {
             block.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
         }
 
-        /// <summary>
-        /// There some issues with coroutines
-        /// </summary>
-        /*public IEnumerator StartSlowmo(GameObject[] blocks)
-        {
-            _inSlowmo = true;
-            yield return RewindFor(blocks);
-        }*/
 
         #endregion
 

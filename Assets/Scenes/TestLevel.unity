@@ -450,7 +450,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 324a54b07ffa9be47bc106fef0dd344d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  commonDelay: 2
+  commonDelay: 0
   explosionLayers:
     serializedVersion: 2
     m_Bits: 256
@@ -3308,6 +3308,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_TagString
       value: Pivot
+      objectReference: {fileID: 0}
+    - target: {fileID: 1305022020429384741, guid: ed83e3bc54d37ad438911e28dd85e879,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2982410915279576300, guid: ed83e3bc54d37ad438911e28dd85e879,
         type: 3}

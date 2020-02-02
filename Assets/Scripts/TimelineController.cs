@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -42,14 +43,13 @@ namespace Assets.Scripts
               .Where(x => x.name.StartsWith("item_"))
               .ToArray();
 
-            foreach (var point in points)
+            foreach (var point in points.OrderByDescending(x => x))
             {
                 var place = pointPlace.ElementAt(point);
                 var gm = Instantiate(cueGameObject, place.gameObject.transform);
                 var btn = gm.gameObject.GetComponentInChildren<Button>();
                 btn.name = btn.name + '.' + point;
                 btn.onClick.AddListener(delegate { Callback(btn); });
-
             }
         }
 
@@ -58,10 +58,10 @@ namespace Assets.Scripts
             this.activeIndex = int.Parse(btn.name.Substring(btn.name.IndexOf('.') + 1));
             var index = points.ToList().FindIndex(x => x == activeIndex);
 
-            var target = (points.ElementAt(index) * 1.0f / 26);
-            StartCoroutine(hman.SeekInstant(gman.Blocks, target));
+            var target = points.ElementAt(index) * 1.0f / maxScale;
             ChangeActive();
-            gman.RepositionCamera();
+            Debug.Log($"Callback : {target}");
+            StartCoroutine(hman.SeekInstant(gman.Blocks, target));
         }
 
         float perc(float num) => num * 1.0f / maxScale;
@@ -83,8 +83,7 @@ namespace Assets.Scripts
                     if (i + padBetween == num) ok = false;
                     if (i - padBetween == num) ok = false;
                     if (Mathf.Abs(perc(num) - perc(i)) < 0.1) ok = false;
-                }
-
+                } 
 
                 if (ok)
                 {
@@ -141,13 +140,14 @@ namespace Assets.Scripts
 
         public bool RewindOnce()
         {
-            if (!CanRewind) return false;
-            _current = _current == -1 ? points.Last.Value : points.Find(_current).Previous?.Value ?? points.Last.Value;
-            var target = (_current * 1.0f / 26);
-            Debug.Log($"Target: {target}");
-            StartCoroutine(hman.SeekInstant(gman.Blocks, target));
-            ChangeActive();
-            //StartCoroutine(hman.Seek(gman.Blocks, target));
+            if (!CanRewind) return false; 
+
+            IEnumerator _rootine()
+            { 
+                yield return StartCoroutine(hman.Seek(gman.Blocks, 1));
+                ChangeActive();
+            }
+            StartCoroutine(_rootine());
             return true;
         }
 

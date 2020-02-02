@@ -100,7 +100,8 @@ namespace Assets.Scripts
         }
         public void ShowPivot()
         {
-            Pivot(true); 
+            Pivot(true);
+            _cameraMovement = true;
         }
 
         public void ClosePivot()
@@ -121,32 +122,25 @@ namespace Assets.Scripts
                 item.GetComponent<SpriteRenderer>().color = Color.blue;
             }
 
-            activeOne = editable.Last(); 
+            activeOne = editable.Last();
         }
 
-        private float _activeZoffset = 25;
         private bool _startRecord;
         private bool _exploded;
-        private bool _enableZoom = true;
 
         public void CameraMoveToActiveObject()
         {
-            var item = GetActiveItem();
-            if (item == default) return;
             if (!_cameraMovement) return;
-            var v3 = item.transform.position;
-            if (_enableZoom && _activeZoffset > 20)
-                _activeZoffset -= 0.1f;
-            else
-            {
-                _enableZoom = false;
-                _activeZoffset = 20;
-            }
-            var vector3 = new Vector3(v3.x, v3.y, _activeZoffset); Camera.main.transform.LookAt(v3);
-            //Camera.main.transform.position =
-            //    Vector3.Lerp(Camera.main.transform.position, vector3, Time.deltaTime * .1f);
+            var item = GetActiveItem();
+
+            Camera.main.transform.position =
+                Vector3.Lerp(Camera.main.transform.position,
+                    new Vector3(item.transform.position.x, item.transform.position.y, Camera.main.transform.position.z),
+                    .1f * Time.deltaTime * _iterMov);
+
         }
 
+        int _iterMov = 10;
         private GameObject GetActiveItem()
         {
             return activeOne;
@@ -183,7 +177,7 @@ namespace Assets.Scripts
             var history = GetHistory();
             history.StopRecord();
             Timeline.CanRewind = true;
-            DisablePhysics();  
+            DisablePhysics();
             Debug.Log($"Recording stopped: {history.Movements.Count} items, frames: {history.Movements.First().Value.Count}");
         }
 
@@ -206,10 +200,9 @@ namespace Assets.Scripts
 
         public void RewindOnce()
         {
+            _cameraMovement = false;
             if (Timeline.RewindOnce())
-            { 
-                ShowPivot();
-                RepositionCamera();
+            {
 
             }
         }

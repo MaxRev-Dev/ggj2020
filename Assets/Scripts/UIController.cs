@@ -18,10 +18,10 @@ public class UIController : MonoBehaviour
     void Start()
     {
         btn_pause.onClick.AddListener(OnPauseClick);
-        btn_warning.onClick.AddListener(OnWarningClick);
+        //btn_warning.onClick.AddListener(OnWarningClick);
         btn_rewind.onClick.AddListener(OnRewindClick);
-        btn_edited.onClick.AddListener(OnEditedClick);
-        btn_completed.onClick.AddListener(OnCompletedClick);
+       // btn_edited.onClick.AddListener(OnEditedClick);
+        //btn_completed.onClick.AddListener(OnCompletedClick);
         btn_turnStep_left.onClick.AddListener(OnTurnLeftClick);
         btn_turnStep_right.onClick.AddListener(OnTurnRightClick);
         manager = GameObject.FindObjectOfType<GameManager>();

@@ -8,8 +8,9 @@ namespace Assets.Scripts
     {
         public Dictionary<string, float> List = new Dictionary<string, float>();
 
-        private float rotateAmount = 30;
-        private double maxRotateAmount => rotateAmount * 6;
+        public float rotateAmount = 30;
+        public float rotateMultiplier = 6;
+        public double maxRotateAmount => rotateMultiplier * 6;
 
         // Start is called before the first frame update
         void Start()
@@ -34,6 +35,7 @@ namespace Assets.Scripts
                 {
                     var angle = List[key];
                     item.transform.Rotate(0, 0, angle);
+                    List[key] = 0;
                 }
             }
         }
@@ -48,9 +50,9 @@ namespace Assets.Scripts
             else
             {
                 var current = List[id];
-                if (-Mathf.Abs(current) > -maxRotateAmount)
+                if (current < maxRotateAmount)
                 {
-                    List[id] -= rotateAmount;
+                    List[id] += rotateAmount;
                 }
             }
         }
@@ -65,9 +67,9 @@ namespace Assets.Scripts
             else
             {
                 var current = List[id];
-                if (current < maxRotateAmount)
+                if (-Mathf.Abs(current) > -maxRotateAmount)
                 {
-                    List[id] += rotateAmount;
+                    List[id] -= rotateAmount;
                 }
             }
         }

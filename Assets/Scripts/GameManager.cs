@@ -12,7 +12,7 @@ namespace Assets.Scripts
     {
         public UserAngleState AngleState;
         public float explosionDuration = 5;
-        private GameObject[] _blocks;
+        public GameObject[] Blocks;
         private bool _initialized;
         public List<GameObject> editable;
         public TimelineController Timeline;
@@ -24,7 +24,7 @@ namespace Assets.Scripts
         // Start is called before the first frame update
         void Start()
         {
-            _blocks = GameObject.FindObjectsOfType<BuildingBlock>().Select(x => x.gameObject).ToArray();
+            Blocks = GameObject.FindObjectsOfType<BuildingBlock>().Select(x => x.gameObject).ToArray();
             RandomizeActiveObjects();
             ShowBriefing();
         }
@@ -36,12 +36,16 @@ namespace Assets.Scripts
             ShowBriefing();
         }
 
+        #region Briefing
+
         private void Briefing(bool isOn)
         {
             var briefing = GameObject.FindGameObjectWithTag("Briefing");
             briefing.GetComponentInChildren<Animator>().SetBool("is_ON", isOn);
 
         }
+
+
         public void ShowBriefing()
         {
             Briefing(true);
@@ -51,6 +55,8 @@ namespace Assets.Scripts
         {
             Briefing(false);
         }
+
+        #endregion
 
         // Update is called once per frame
         void Update()
@@ -66,8 +72,8 @@ namespace Assets.Scripts
         private void RandomizeActiveObjects()
         {
             var rand = GetComponent<Randomizer>();
-            editable = rand.Generate(_blocks);
-            activeOne = rand.GenerateOne(_blocks);
+            editable = rand.Generate(Blocks);
+            activeOne = rand.GenerateOne(Blocks);
             activeOne.tag = "Active";
             _cameraMovement = true;
             foreach (var item in editable)
@@ -113,13 +119,13 @@ namespace Assets.Scripts
 
                 for (int i = 0; i < 3; i++)
                 {
-                    yield return StartCoroutine(history.Seek(_blocks, .1f));
+                    yield return StartCoroutine(history.Seek(Blocks, .1f));
                     yield return new WaitForSeconds(1f);
-                    yield return StartCoroutine(history.SeekInstant(_blocks, .5f));
+                    yield return StartCoroutine(history.SeekInstant(Blocks, .5f));
                     yield return new WaitForSeconds(1f);
                 }
 
-                yield return StartCoroutine(history.SeekInstant(_blocks, 1f));
+                yield return StartCoroutine(history.SeekInstant(Blocks, 1f));
                 yield return new WaitForSeconds(1f);
                 history.StopPlaying();
             }
@@ -132,7 +138,7 @@ namespace Assets.Scripts
             {
                 yield return new WaitForSeconds(delay);
                 var history = GetHistory();
-                history.StartRecord(_blocks);
+                history.StartRecord(Blocks);
             }
             StartCoroutine(_rootine());
         }
@@ -165,7 +171,7 @@ namespace Assets.Scripts
 
         public void RewindOnce()
         {
-            throw new NotImplementedException();
+            Timeline.RewindOnce();
         }
     }
 

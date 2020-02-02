@@ -14,13 +14,18 @@ namespace Assets.Scripts
             InitTimeline();
 
             GenerateStartPoints();
+            hman = GameObject.FindObjectOfType<HistoryManager>();
+            gman = GameObject.FindObjectOfType<GameManager>();
         }
 
+        private HistoryManager hman;
+        private GameManager gman;
         public GameObject cueGameObject;
+        private LinkedList<int> points;
 
         private void GenerateStartPoints()
         {
-            var points = GetPointsByRule();
+            points = new LinkedList<int>(GetPointsByRule());
             var timeline = GameObject.FindGameObjectWithTag("Timeline");
             var pointPlace = timeline.GetComponentsInChildren<LayoutElement>().Where(x => x.name.StartsWith("item_"))
                 .ToArray();
@@ -97,6 +102,8 @@ namespace Assets.Scripts
 
         public void RewindOnce()
         {
+            var next = points.Last();
+            StartCoroutine(hman.Seek(gman.Blocks, (next * 1.0f/ 26) * .1f));
         }
     }
 }

@@ -11,6 +11,8 @@ TagManager:
   - Active
   - ActiveItems
   - Timeline
+  - Briefing
+  - Pivot
   layers:
   - Default
   - TransparentFX
@@ -47,4 +49,7 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: GFX
+    uniqueID: 1792794677
     locked: 0

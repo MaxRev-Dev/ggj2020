@@ -33,9 +33,9 @@ namespace Assets.Scripts
                 }
                 else
                 {
-                    var angle = List[key];
-                    item.transform.Rotate(0, 0, angle);
-                    List[key] = 0;
+                    //var angle = List[key];
+                    //item.transform.Rotate(0, 0, angle);
+                    //List[key] = 0;
                 }
             }
         }
@@ -45,14 +45,16 @@ namespace Assets.Scripts
             var id = HistoryManager.GetItemId(o);
             if (!List.ContainsKey(id))
             {
-                List[id] = rotateAmount;
+                List[id] = -rotateAmount;
+                o.transform.Rotate(0, 0, -rotateAmount);
             }
             else
             {
                 var current = List[id];
                 if (current < maxRotateAmount)
                 {
-                    List[id] += rotateAmount;
+                    List[id] -= rotateAmount;
+                    o.transform.Rotate(0, 0, -rotateAmount);
                 }
             }
         }
@@ -62,16 +64,31 @@ namespace Assets.Scripts
             var id = HistoryManager.GetItemId(o);
             if (!List.ContainsKey(id))
             {
-                List[id] = -rotateAmount;
+                o.transform.Rotate(0, 0, rotateAmount);
+                List[id] = rotateAmount;
             }
             else
             {
                 var current = List[id];
                 if (-Mathf.Abs(current) > -maxRotateAmount)
                 {
-                    List[id] -= rotateAmount;
+                    List[id] += rotateAmount;
+                    o.transform.Rotate(0, 0, rotateAmount);
                 }
             }
+        }
+
+        public float GetRotation(GameObject item)
+        {
+            var id = HistoryManager.GetItemId(item);
+            if (List.ContainsKey(id))
+            {
+                var val = List[id];
+                List[id] = 0;
+                return val;
+            }
+
+            return 0;
         }
     }
 }

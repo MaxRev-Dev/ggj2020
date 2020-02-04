@@ -10,40 +10,15 @@ namespace Assets.Scripts
     public class HistoryManager : MonoBehaviour
     {
         public bool isRecording;
-        public bool isPlaying; 
-        public readonly HistoryContainer Movements = new HistoryContainer(); 
+        public bool isPlaying;
+        public readonly HistoryContainer Movements = new HistoryContainer();
         private Coroutine[] _routines;
         private Coroutine _recordroutine;
-
-        private BlockTransform target;
 
         // Update is called once per frame
         void Update()
         {
 
-            //if (enableSlowmo)
-            //{
-
-            //    if (!_inSlowmo)
-            //    {
-            //        _inSlowmo = true;
-            //        if (Math.Abs(Time.timeScale - 1.0f) < 0.001)
-            //            Time.timeScale = 0.5f;
-            //        else
-            //            Time.timeScale = 1.0f;
-            //        Time.fixedDeltaTime = 0.02f * Time.timeScale;
-            //    }
-            //}
-            //if (Math.Abs(Time.timeScale - 0.5f) < 0.001)
-            //{
-            //    currentAmount += Time.deltaTime;
-            //}
-
-            //if (currentAmount > maxAmount)
-            //{
-            //    currentAmount = 0f;
-            //    Time.timeScale = 1.0f;
-            //}
         }
 
         public void Reset()
@@ -87,6 +62,8 @@ namespace Assets.Scripts
 
         public IEnumerator RewindFor(GameObject[] blocks)
         {
+            if (isPlaying) yield break;
+
             BooleansEnter();
             var active = 0;
 
@@ -102,6 +79,7 @@ namespace Assets.Scripts
 
                 active++;
                 SetZeroVelocity(item);
+                yield return 0;
             }
 
 
@@ -118,20 +96,30 @@ namespace Assets.Scripts
         private void BooleansExit()
         {
             isPlaying = false;
-            Physics2D.autoSimulation = true; 
         }
 
         private void BooleansEnter()
         {
-            Physics2D.autoSimulation = false;
+            Physics2D.autoSimulation = false; 
             isPlaying = true;
         }
-
+        
         internal void SetTransform(GameObject item, BlockTransform itemTransform)
         {
             if (itemTransform == default) return;
+
+            var m = GameObject.FindObjectOfType<UserAngleState>();
+
             item.transform.position = itemTransform.Position;
-            item.transform.rotation = itemTransform.Rotation;
+
+            if (item.tag == "ActiveItems")
+            {
+                item.transform.Rotate(0, 0, m.GetRotation(item)); 
+            }
+            else
+            {
+                item.transform.rotation = itemTransform.Rotation;
+            }
         }
 
         public void StopPlaying()
@@ -152,7 +140,7 @@ namespace Assets.Scripts
             if (percentage < 0) throw new ArgumentOutOfRangeException(nameof(percentage));
             if (percentage > 1) throw new ArgumentOutOfRangeException(nameof(percentage));
             if (isPlaying)
-                yield return new WaitWhile(() => isPlaying);
+                yield break;
             BooleansEnter();
 
             var active = 0;
@@ -161,7 +149,7 @@ namespace Assets.Scripts
                 active++;
                 var id = GetItemId(block);
                 BlockTransform current = null;
-                foreach (var itemsTransform in Movements.GetForPercentage(id, percentage))
+                foreach (var itemsTransform in Movements.GetForPercentage(id, percentage, false))
                 {
                     current = itemsTransform;
                     yield return 0;
@@ -173,8 +161,6 @@ namespace Assets.Scripts
 
                 SetZeroVelocity(block);
             }
-            Startroutines(blocks.Select(_mainroutine));
-
 
             IEnumerator _exit()
             {
@@ -195,9 +181,8 @@ namespace Assets.Scripts
 
             IEnumerator _mainroutine(GameObject block)
             {
-                yield return InvokeUserActiveObjects();
                 var id = GetItemId(block);
-                foreach (var itemsTransform in Movements.GetForPercentage(id, percentage))
+                foreach (var itemsTransform in Movements.GetForPercentage(id, percentage, true))
                 {
                     // slowmo effect will not affect this blocks
                     SetTransform(block, itemsTransform);
@@ -220,29 +205,12 @@ namespace Assets.Scripts
             yield return StartCoroutine(_exit());
         }
 
-        private IEnumerator InvokeUserActiveObjects()
-        {
-            var editable = GameObject.FindObjectOfType<GameManager>().editable;
-            foreach (var item in editable)
-            {
-            }
-
-            yield return 0;
-        }
 
         private void SetZeroVelocity(GameObject block)
         {
             block.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
         }
 
-        /// <summary>
-        /// There some issues with coroutines
-        /// </summary>
-        /*public IEnumerator StartSlowmo(GameObject[] blocks)
-        {
-            _inSlowmo = true;
-            yield return RewindFor(blocks);
-        }*/
 
         #endregion
 

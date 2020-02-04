@@ -1,17 +1,16 @@
 ﻿using Assets.Scripts.Explosions;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts
 {
     public class GameManager : MonoBehaviour
-    { 
-        public float explosionDuration = 5;
-        private GameObject[] _blocks;
+    {
+        public float explosionDuration = 4;
+        public GameObject[] Blocks;
         private bool _initialized;
         public List<GameObject> editable;
         public TimelineController Timeline;
@@ -22,60 +21,127 @@ namespace Assets.Scripts
 
         // Start is called before the first frame update
         void Start()
-        {
-            _blocks = GameObject.FindObjectsOfType<BuildingBlock>().Select(x => x.gameObject).ToArray(); 
-        }
-
-        private void OnPauseClick()
-        {
-            // enable pause
-            CameraReset();
+        { 
+            Blocks = GameObject.FindObjectsOfType<BuildingBlock>().Select(x => x.gameObject).ToArray();
+            _cameraBase = Camera.main.transform.position;
+            RandomizeActiveObjects();
+            Timeline = GameObject.FindObjectOfType<TimelineController>();
+            ShowBriefing();
         }
 
         // Update is called once per frame
         void Update()
         {
-            CameraMoveToActiveObject();
-            if (_initialized) return;
-            _initialized = true;
-            RandomizeActiveObjects();
-            var cassette = GameObject.FindObjectOfType<BombCassette>();
-            StartRecordWithDelay(cassette.commonDelay);
-            StartCoroutine(WaitAndStopRecord());
-           // TEST_StartInterceptor();
+            if (_startRecord)
+            {
+                Debug.Log("Recording started");
+                _startRecord = false;
+                StartRecordWithDelay(0);
+            }
+
+            if (_cameraMovement)
+            {
+                CameraMoveToActiveObject();
+            }
         }
+        public GameObject GetRandomEditableObject()
+        {
+            var rand = FindObjectOfType<Randomizer>();
+            return rand.GetCurrentRand();
+        }
+
+        public void StartExplosion()
+        {
+            var cassette = FindObjectOfType<BombCassette>();
+            cassette.bombPlanted = true;
+        }
+
+        public void OnPauseClick()
+        {
+            // enable pause 
+            ShowBriefing();
+        }
+
+        #region Briefing
+
+        private void Briefing(bool isOn)
+        {
+            var briefing = GameObject.FindGameObjectWithTag("Briefing");
+            briefing.GetComponentInChildren<Animator>().SetBool("is_ON", isOn);
+        }
+
+
+        public void ShowBriefing()
+        {
+            Briefing(true);
+        }
+
+        public void CloseBriefing()
+        {
+            Briefing(false);
+
+            if (!_exploded)
+            {
+                _startRecord = true;
+                _exploded = true;
+                StartExplosion();
+            }
+
+        }
+
+        #endregion
+
+        #region Pivot
+
+
+        private void Pivot(bool isOn)
+        {
+            var pivot = GameObject.FindGameObjectWithTag("Pivot");
+            pivot.GetComponent<Animator>().SetBool("is_ON", isOn);
+        }
+        public void ShowPivot()
+        {
+            Pivot(true);
+            _cameraMovement = true;
+        }
+
+        public void ClosePivot()
+        {
+            Pivot(false);
+        }
+
+        #endregion
 
 
         private void RandomizeActiveObjects()
         {
-            var rand = GetComponent<Randomizer>();
-            editable = rand.Generate(_blocks);
-            _cameraMovement = true;
+            var rand = GameObject.FindObjectOfType<Randomizer>();
+            editable = rand.Generate(Blocks);
             foreach (var item in editable)
             {
                 item.tag = "ActiveItems";
-                item.GetComponent<SpriteRenderer>().color = Color.blue;
+              //  item.GetComponent<SpriteRenderer>().color = Color.blue;
             }
+
             activeOne = editable.Last();
-            activeOne.tag = "ActiveItems";
-            activeOne.GetComponent<SpriteRenderer>().color = Color.green;
         }
 
-        private float _activeZoffset = 20;
+        private bool _startRecord;
+        private bool _exploded;
 
         public void CameraMoveToActiveObject()
         {
-            var item = GetActiveItem();
-            if (item == default) return;
             if (!_cameraMovement) return;
-            var v3 = item.transform.position;
-            _activeZoffset -= 0.1f;
-            if (_activeZoffset < 0) _cameraMovement = false;
-            var vector3 = new Vector3(v3.x, v3.y, _activeZoffset);
+            var item = GetActiveItem();
+
             Camera.main.transform.position =
-                Vector3.Lerp(Camera.main.transform.position, vector3, Time.deltaTime * .1f);
+                Vector3.Lerp(Camera.main.transform.position,
+                    new Vector3(item.transform.position.x, item.transform.position.y, Camera.main.transform.position.z),
+                    .1f * Time.deltaTime * _iterMov);
+
         }
 
+        int _iterMov = 40;
         private GameObject GetActiveItem()
         {
             return activeOne;
@@ -87,36 +153,14 @@ namespace Assets.Scripts
             Camera.main.transform.position = _cameraBase;
         }
 
-        private void TEST_StartInterceptor()
-        {
-            IEnumerator _rootine()
-            {
-                yield return new WaitForSeconds(explosionDuration);
-                var history = GetHistory();
-                history.StopPlaying();
-
-                for (int i = 0; i < 3; i++)
-                {
-                    yield return StartCoroutine(history.Seek(_blocks, .1f));
-                    yield return new WaitForSeconds(1f);
-                    yield return StartCoroutine(history.SeekInstant(_blocks, .5f));
-                    yield return new WaitForSeconds(1f);
-                }
-
-                yield return StartCoroutine(history.SeekInstant(_blocks, 1f));
-                yield return new WaitForSeconds(1f);
-                history.StopPlaying(); 
-            }
-            StartCoroutine(_rootine());
-        }
-
         private void StartRecordWithDelay(float delay)
         {
             IEnumerator _rootine()
             {
                 yield return new WaitForSeconds(delay);
                 var history = GetHistory();
-                history.StartRecord(_blocks);
+                history.StartRecord(Blocks);
+                StartCoroutine(WaitAndStopRecord());
             }
             StartCoroutine(_rootine());
         }
@@ -129,16 +173,13 @@ namespace Assets.Scripts
 
         private IEnumerator WaitAndStopRecord()
         {
-            yield return new WaitForSeconds(3);
+            yield return new WaitForSeconds(explosionDuration);
 
             var history = GetHistory();
             history.StopRecord();
+            Timeline.CanRewind = true;
             DisablePhysics();
-        }
-
-        private void EnablePhysics()
-        {
-            Physics2D.autoSimulation = false;
+            Debug.Log($"Recording stopped: {history.Movements.Count} items, frames: {history.Movements.First().Value.Count}");
         }
 
         private void DisablePhysics()
@@ -160,8 +201,50 @@ namespace Assets.Scripts
 
         public void RewindOnce()
         {
-            GameObject.FindObjectOfType<TimelineController>().RewindOnce();
+            _cameraMovement = false;
+            Physics2D.autoSimulation = false;
+            ClosePivot();
+            if (Timeline.RewindOnce())
+            {
+            }
         }
+
+
+        public void RepositionCamera()
+        {
+            _cameraMovement = true;
+        }
+
+
+        #region TEST
+
+        private void TEST_StartInterceptor()
+        {
+            IEnumerator _rootine()
+            {
+                yield return new WaitForSeconds(explosionDuration);
+                var history = GetHistory();
+                history.StopPlaying();
+
+                for (int i = 0; i < 3; i++)
+                {
+                    yield return StartCoroutine(history.Seek(Blocks, .1f));
+                    yield return new WaitForSeconds(1f);
+                    yield return StartCoroutine(history.SeekInstant(Blocks, .5f));
+                    yield return new WaitForSeconds(1f);
+                }
+
+                yield return StartCoroutine(history.SeekInstant(Blocks, 1f));
+                yield return new WaitForSeconds(1f);
+                history.StopPlaying();
+            }
+            StartCoroutine(_rootine());
+        }
+
+
+
+        #endregion
+
     }
 
 }

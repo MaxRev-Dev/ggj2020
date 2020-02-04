@@ -14,13 +14,7 @@ namespace Assets.Scripts
         public readonly HistoryContainer Movements = new HistoryContainer();
         private Coroutine[] _routines;
         private Coroutine _recordroutine;
-
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
-
+          
         public void Reset()
         {
             Movements.Clear();
@@ -58,8 +52,7 @@ namespace Assets.Scripts
             return item.tag + '.' + item.name;
         }
 
-        #region Controls
-
+        #region Controls 
         public IEnumerator RewindFor(GameObject[] blocks)
         {
             if (isPlaying) yield break;
@@ -206,16 +199,12 @@ namespace Assets.Scripts
 
             yield return StartCoroutine(_exit());
         }
-
-
+         
         private void SetZeroVelocity(GameObject block)
         {
             block.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
         }
-
-
-        #endregion
-
+         
         private void Startroutines(IEnumerable<IEnumerator> routine)
         {
             Stoproutines();
@@ -233,6 +222,8 @@ namespace Assets.Scripts
 
             _routines = tmp;
         }
+        #endregion
+
 
 
     }

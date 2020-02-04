@@ -16,12 +16,14 @@ namespace Assets.Scripts
         public TimelineController Timeline;
         private Vector3 _cameraBase;
         public GameObject activeOne;
-
+        private bool _startRecord;
+        private bool _exploded;
+        private int _iterMov = 40;
         private bool _cameraMovement;
 
         // Start is called before the first frame update
         void Start()
-        { 
+        {
             Blocks = GameObject.FindGameObjectsWithTag("BuildingBlock").ToArray();
             _cameraBase = Camera.main.transform.position;
             RandomizeActiveObjects();
@@ -44,6 +46,7 @@ namespace Assets.Scripts
                 CameraMoveToActiveObject();
             }
         }
+
         public GameObject GetRandomEditableObject()
         {
             var rand = FindObjectOfType<Randomizer>();
@@ -69,8 +72,7 @@ namespace Assets.Scripts
             var briefing = GameObject.FindGameObjectWithTag("Briefing");
             briefing.GetComponentInChildren<Animator>().SetBool("is_ON", isOn);
         }
-
-
+         
         public void ShowBriefing()
         {
             Briefing(true);
@@ -92,13 +94,13 @@ namespace Assets.Scripts
         #endregion
 
         #region Pivot
-
-
+         
         private void Pivot(bool isOn)
         {
             var pivot = GameObject.FindGameObjectWithTag("Pivot");
             pivot.GetComponent<Animator>().SetBool("is_ON", isOn);
         }
+
         public void ShowPivot()
         {
             Pivot(true);
@@ -120,14 +122,12 @@ namespace Assets.Scripts
             foreach (var item in editable)
             {
                 item.tag = "ActiveItems";
-              //  item.GetComponent<SpriteRenderer>().color = Color.blue;
+                //  item.GetComponent<SpriteRenderer>().color = Color.blue;
             }
 
             activeOne = editable.Last();
         }
 
-        private bool _startRecord;
-        private bool _exploded;
 
         public void CameraMoveToActiveObject()
         {
@@ -141,7 +141,6 @@ namespace Assets.Scripts
 
         }
 
-        int _iterMov = 40;
         private GameObject GetActiveItem()
         {
             return activeOne;
@@ -207,7 +206,7 @@ namespace Assets.Scripts
             CameraReset();
             if (Timeline.RewindOnce())
             {
-               
+
             }
         }
 
@@ -242,9 +241,7 @@ namespace Assets.Scripts
             }
             StartCoroutine(_rootine());
         }
-
-
-
+          
         #endregion
 
     }

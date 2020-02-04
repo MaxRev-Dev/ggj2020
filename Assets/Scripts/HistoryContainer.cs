@@ -13,74 +13,6 @@ namespace Assets.Scripts
         private readonly Dictionary<string, LinkedList<BlockTransform>> History
             = new Dictionary<string, LinkedList<BlockTransform>>();
 
-        public IEnumerator<KeyValuePair<string, LinkedList<BlockTransform>>> GetEnumerator()
-        {
-            return Sequence.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return ((IEnumerable)Sequence).GetEnumerator();
-        }
-
-        public void Add(KeyValuePair<string, LinkedList<BlockTransform>> item)
-        {
-            Sequence.Add(item.Key, item.Value);
-        }
-
-        public void Clear()
-        {
-            Sequence.Clear();
-        }
-
-        public bool Contains(KeyValuePair<string, LinkedList<BlockTransform>> item)
-        {
-            return Sequence.Contains(item);
-        }
-
-        public void CopyTo(KeyValuePair<string, LinkedList<BlockTransform>>[] array, int arrayIndex)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Remove(KeyValuePair<string, LinkedList<BlockTransform>> item)
-        {
-            return Sequence.Remove(item.Key);
-        }
-
-        public int Count => Sequence.Count;
-
-        public bool IsReadOnly => ((ICollection<KeyValuePair<string, LinkedList<BlockTransform>>>)Sequence).IsReadOnly;
-
-        public void Add(string key, LinkedList<BlockTransform> value)
-        {
-            Sequence.Add(key, value);
-        }
-
-        public bool ContainsKey(string key)
-        {
-            return Sequence.ContainsKey(key);
-        }
-
-        public bool Remove(string key)
-        {
-            return Sequence.Remove(key);
-        }
-
-        public bool TryGetValue(string key, out LinkedList<BlockTransform> value)
-        {
-            return Sequence.TryGetValue(key, out value);
-        }
-
-        public LinkedList<BlockTransform> this[string key]
-        {
-            get => Sequence[key];
-            set => Sequence[key] = value;
-        }
-
-        public ICollection<string> Keys => ((IDictionary<string, LinkedList<BlockTransform>>)Sequence).Keys;
-
-        public ICollection<LinkedList<BlockTransform>> Values => ((IDictionary<string, LinkedList<BlockTransform>>)Sequence).Values;
 
         public void Add(string key, BlockTransform transformRotation)
         {
@@ -120,24 +52,11 @@ namespace Assets.Scripts
             item = default;
             return false;
         }
-
-
-        void AddTo(Dictionary<string, LinkedList<BlockTransform>> list, string key, BlockTransform block)
-        {
-            if (!list.ContainsKey(key))
-            {
-                list[key] = new LinkedList<BlockTransform>();
-            }
-
-            list[key].AddLast(block);
-        }
-
+         
         public IEnumerable<BlockTransform> GetForPercentage(string id, float percentage, bool allFrames)
         {
             var percentageLocal = GetPercentageForID(id) * .01f;
-            var isRewind = percentageLocal >= percentage;
-            //if (Mathf.Abs(percentage - percentageLocal) < .1)
-            //    return Enumerable.Empty<BlockTransform>();
+            var isRewind = percentageLocal >= percentage; 
             return isRewind ? RewindLoop(id, percentage, allFrames) : ForwardLoop(id, percentage, allFrames);
         }
 
@@ -161,16 +80,7 @@ namespace Assets.Scripts
                     yield return item;
             else
                 yield return Sequence[id].ElementAt((int)breakPoint); 
-        }
-
-        private void MoveFrom(LinkedList<BlockTransform> source, LinkedList<BlockTransform> dest)
-        {
-            foreach (var item in source.Reverse())
-            {
-                dest.AddLast(item);
-            }
-            source.Clear();
-        }
+        } 
 
         private float GetPercentageForID(string id)
         {
@@ -183,5 +93,80 @@ namespace Assets.Scripts
             return (Sequence.ContainsKey(id) ? Sequence[id].Count : 0) +
                  (History.ContainsKey(id) ? History[id].Count : 0);
         }
+
+
+        #region Dictionary Impl
+
+        public IEnumerator<KeyValuePair<string, LinkedList<BlockTransform>>> GetEnumerator()
+        {
+            return Sequence.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((IEnumerable)Sequence).GetEnumerator();
+        }
+
+        public void Add(KeyValuePair<string, LinkedList<BlockTransform>> item)
+        {
+            Sequence.Add(item.Key, item.Value);
+        }
+
+        public void Clear()
+        {
+            Sequence.Clear();
+        }
+
+        public bool Contains(KeyValuePair<string, LinkedList<BlockTransform>> item)
+        {
+            return Sequence.Contains(item);
+        }
+
+        public void CopyTo(KeyValuePair<string, LinkedList<BlockTransform>>[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Remove(KeyValuePair<string, LinkedList<BlockTransform>> item)
+        {
+            return Sequence.Remove(item.Key);
+        }
+
+        public void Add(string key, LinkedList<BlockTransform> value)
+        {
+            Sequence.Add(key, value);
+        }
+
+        public bool ContainsKey(string key)
+        {
+            return Sequence.ContainsKey(key);
+        }
+
+        public bool Remove(string key)
+        {
+            return Sequence.Remove(key);
+        }
+
+        public bool TryGetValue(string key, out LinkedList<BlockTransform> value)
+        {
+            return Sequence.TryGetValue(key, out value);
+        }
+
+        public LinkedList<BlockTransform> this[string key]
+        {
+            get => Sequence[key];
+            set => Sequence[key] = value;
+        }
+
+
+        public int Count => Sequence.Count;
+
+        public bool IsReadOnly => ((ICollection<KeyValuePair<string, LinkedList<BlockTransform>>>)Sequence).IsReadOnly;
+
+        public ICollection<string> Keys => ((IDictionary<string, LinkedList<BlockTransform>>)Sequence).Keys;
+
+        public ICollection<LinkedList<BlockTransform>> Values => ((IDictionary<string, LinkedList<BlockTransform>>)Sequence).Values;
+         
+        #endregion
     }
 }

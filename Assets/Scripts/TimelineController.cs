@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,6 +10,18 @@ namespace Assets.Scripts
 {
     public class TimelineController : MonoBehaviour
     {
+        private HistoryManager hman;
+        private GameManager gman;
+        public GameObject cueGameObject;
+        private LinkedList<int> points;
+        private int maxScale = 26;
+        public int padBetween = 2;
+        public int padBounds = 3;
+        public int maxCue = 3;
+        private LayoutElement[] pointPlace;
+        public bool CanRewind { get; set; }
+        public Dictionary<int, GameObject> Map = new Dictionary<int, GameObject>();
+        private int activeIndex;
 
         // Start is called before the first frame update
         void Start()
@@ -19,21 +32,11 @@ namespace Assets.Scripts
             GenerateStartPoints();
         }
 
-        private HistoryManager hman;
-        private GameManager gman;
-        public GameObject cueGameObject;
-        private LinkedList<int> points;
-        private int _current = -1;
-        private int maxScale = 26;
-        public int padBetween = 2;
-        public int padBounds = 3;
-        public int maxCue = 3;
-        private LayoutElement[] pointPlace;
-        public bool CanRewind { get; set; }
-        public Dictionary<int, GameObject> Map = new Dictionary<int, GameObject>();
-        private int activeIndex;
-        private bool _initialized;
-        private bool _pointsReady;
+        // Update is called once per frame
+        void Update()
+        {
+
+        }
 
         private void GenerateStartPoints()
         {
@@ -49,11 +52,11 @@ namespace Assets.Scripts
                 var gm = Instantiate(cueGameObject, place.gameObject.transform);
                 var btn = gm.gameObject.GetComponentInChildren<Button>();
                 btn.name = btn.name + '.' + point;
-                btn.onClick.AddListener(delegate { Callback(btn); });
+                btn.onClick.AddListener(delegate { CueCallback(btn); });
             }
         }
 
-        private void Callback(Button btn)
+        private void CueCallback(Button btn)
         {
             this.activeIndex = int.Parse(btn.name.Substring(btn.name.IndexOf('.') + 1));
             var index = points.ToList().FindIndex(x => x == activeIndex);
@@ -61,16 +64,14 @@ namespace Assets.Scripts
             var target = points.ElementAt(index) * 1.0f / maxScale;
             ChangeActive();
             gman.ShowPivot();
-            Debug.Log($"Callback : {target}");
             StartCoroutine(hman.SeekInstant(gman.Blocks, target));
-
         }
 
-        float perc(float num) => num * 1.0f / maxScale;
+        float Perc(float num) => num * 1.0f / maxScale;
 
         IEnumerable<int> GetPointsByRule()
         {
-            int GetNext() => Random.Range(1 + padBounds, maxScale - padBounds);
+            int GetNext() => UnityEngine.Random.Range(1 + padBounds, maxScale - padBounds);
 
             var list = new List<int>();
 
@@ -84,8 +85,8 @@ namespace Assets.Scripts
                 {
                     if (i + padBetween == num) ok = false;
                     if (i - padBetween == num) ok = false;
-                    if (Mathf.Abs(perc(num) - perc(i)) < 0.1) ok = false;
-                } 
+                    if (Mathf.Abs(Perc(num) - Perc(i)) < 0.1) ok = false;
+                }
 
                 if (ok)
                 {
@@ -95,7 +96,6 @@ namespace Assets.Scripts
 
             return list;
         }
-
 
         private void InitTimeline()
         {
@@ -120,13 +120,6 @@ namespace Assets.Scripts
             }
         }
 
-        // Update is called once per frame
-        void Update()
-        {
-            if (_initialized) return;
-            _initialized = true;
-        }
-
         private void InitPointsForce()
         {
             foreach (var point in points)
@@ -139,32 +132,37 @@ namespace Assets.Scripts
                 }
         }
 
-
         public bool RewindOnce()
         {
-            if (!CanRewind) return false; 
+            if (!CanRewind) return false;
 
             IEnumerator _rootine()
-            { 
+            {
+                // reverse the timeline
                 yield return StartCoroutine(hman.Seek(gman.Blocks, 1));
-                ChangeActive(); 
-                Physics2D.autoSimulation = true;
+                ChangeActive();
+                EnablePhysics();
             }
             StartCoroutine(_rootine());
             return true;
         }
 
+        private void EnablePhysics()
+        {
+            Physics2D.autoSimulation = true;
+        }
+
         private void ChangeActive()
         {
             if (!Map.Any()) InitPointsForce();
-            gman.activeOne = Map[activeIndex];
+            if (Map.ContainsKey(activeIndex))
+                gman.activeOne = Map[activeIndex];
 
             foreach (var item in gman.editable)
             {
-                //item.GetComponent<SpriteRenderer>().color = Color.blue;
+                //TODO: change active item
             }
-            //gman.activeOne.GetComponent<SpriteRenderer>().color = Color.green;
-             
+
         }
     }
 }

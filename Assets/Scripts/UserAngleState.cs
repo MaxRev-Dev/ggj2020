@@ -20,24 +20,8 @@ namespace Assets.Scripts
 
         // Update is called once per frame
         void Update()
-        {
-            var gameManager = GameObject.FindObjectOfType<GameManager>();
+        { 
 
-            foreach (var item in gameManager.editable)
-            {
-                var key = HistoryManager.GetItemId(item);
-
-                if (!List.ContainsKey(key))
-                {
-                    List[key] = 0;
-                }
-                else
-                {
-                    //var angle = List[key];
-                    //item.transform.Rotate(0, 0, angle);
-                    //List[key] = 0;
-                }
-            }
         }
 
         public void TurnRight(GameObject o)

@@ -20,10 +20,7 @@ public class UIController : MonoBehaviour
     {
         btn_close.onClick.AddListener(OnBriefingClose);
         btn_rewind.onClick.AddListener(OnRewindClick);
-        btn_pause.onClick.AddListener(OnPauseClick);
-        //btn_warning.onClick.AddListener(OnWarningClick);
-        //btn_edited.onClick.AddListener(OnEditedClick);
-        //btn_completed.onClick.AddListener(OnCompletedClick);
+        btn_pause.onClick.AddListener(OnPauseClick); 
         btn_turnStep_left.onClick.AddListener(OnTurnLeftClick);
         btn_turnStep_right.onClick.AddListener(OnTurnRightClick);
         manager = GameObject.FindObjectOfType<GameManager>();

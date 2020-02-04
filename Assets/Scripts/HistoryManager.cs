@@ -103,7 +103,7 @@ namespace Assets.Scripts
             Physics2D.autoSimulation = false; 
             isPlaying = true;
         }
-
+        
         internal void SetTransform(GameObject item, BlockTransform itemTransform)
         {
             if (itemTransform == default) return;
@@ -114,10 +114,7 @@ namespace Assets.Scripts
 
             if (item.tag == "ActiveItems")
             {
-                item.transform.Rotate(0, 0, itemTransform.Rotation.z-m.GetRotation(item));
-                //item.transform.rotation =
-                //    new Quaternion(itemTransform.Rotation.x, itemTransform.Rotation.y,
-                //        itemTransform.Rotation.z + m.GetRotation(item), itemTransform.Rotation.w); 
+                item.transform.Rotate(0, 0, m.GetRotation(item)); 
             }
             else
             {

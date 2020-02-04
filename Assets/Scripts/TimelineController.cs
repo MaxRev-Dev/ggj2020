@@ -60,8 +60,10 @@ namespace Assets.Scripts
 
             var target = points.ElementAt(index) * 1.0f / maxScale;
             ChangeActive();
+            gman.ShowPivot();
             Debug.Log($"Callback : {target}");
             StartCoroutine(hman.SeekInstant(gman.Blocks, target));
+
         }
 
         float perc(float num) => num * 1.0f / maxScale;
@@ -145,7 +147,8 @@ namespace Assets.Scripts
             IEnumerator _rootine()
             { 
                 yield return StartCoroutine(hman.Seek(gman.Blocks, 1));
-                ChangeActive();
+                ChangeActive(); 
+                Physics2D.autoSimulation = true;
             }
             StartCoroutine(_rootine());
             return true;
@@ -158,11 +161,10 @@ namespace Assets.Scripts
 
             foreach (var item in gman.editable)
             {
-                item.GetComponent<SpriteRenderer>().color = Color.blue;
+                //item.GetComponent<SpriteRenderer>().color = Color.blue;
             }
-            gman.activeOne.GetComponent<SpriteRenderer>().color = Color.green;
-
-            gman.ShowPivot();
+            //gman.activeOne.GetComponent<SpriteRenderer>().color = Color.green;
+             
         }
     }
 }

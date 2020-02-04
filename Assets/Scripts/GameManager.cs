@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts
 {
@@ -20,7 +21,7 @@ namespace Assets.Scripts
 
         // Start is called before the first frame update
         void Start()
-        {
+        { 
             Blocks = GameObject.FindObjectsOfType<BuildingBlock>().Select(x => x.gameObject).ToArray();
             _cameraBase = Camera.main.transform.position;
             RandomizeActiveObjects();
@@ -119,7 +120,7 @@ namespace Assets.Scripts
             foreach (var item in editable)
             {
                 item.tag = "ActiveItems";
-                item.GetComponent<SpriteRenderer>().color = Color.blue;
+              //  item.GetComponent<SpriteRenderer>().color = Color.blue;
             }
 
             activeOne = editable.Last();
@@ -140,7 +141,7 @@ namespace Assets.Scripts
 
         }
 
-        int _iterMov = 10;
+        int _iterMov = 40;
         private GameObject GetActiveItem()
         {
             return activeOne;
@@ -201,9 +202,10 @@ namespace Assets.Scripts
         public void RewindOnce()
         {
             _cameraMovement = false;
+            Physics2D.autoSimulation = false;
+            ClosePivot();
             if (Timeline.RewindOnce())
             {
-
             }
         }
 

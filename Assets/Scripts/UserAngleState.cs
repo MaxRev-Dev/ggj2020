@@ -80,7 +80,14 @@ namespace Assets.Scripts
         public float GetRotation(GameObject item)
         {
             var id = HistoryManager.GetItemId(item);
-            return List.ContainsKey(id) ? List[id] : 0;
+            if (List.ContainsKey(id))
+            {
+                var val = List[id];
+                List[id] = 0;
+                return val;
+            }
+
+            return 0;
         }
     }
 }

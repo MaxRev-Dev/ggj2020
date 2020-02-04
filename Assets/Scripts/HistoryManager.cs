@@ -111,8 +111,10 @@ namespace Assets.Scripts
             var m = GameObject.FindObjectOfType<UserAngleState>();
 
             item.transform.position = itemTransform.Position;
+            
 
-            if (item.tag == "ActiveItems")
+
+            if (item.CompareTag("ActiveItems"))
             {
                 item.transform.Rotate(0, 0, m.GetRotation(item)); 
             }
@@ -152,7 +154,7 @@ namespace Assets.Scripts
                 foreach (var itemsTransform in Movements.GetForPercentage(id, percentage, false))
                 {
                     current = itemsTransform;
-                    yield return 0;
+                    yield return new WaitForEndOfFrame();
                 }
 
                 if (current != null)
@@ -181,15 +183,15 @@ namespace Assets.Scripts
 
             IEnumerator _mainroutine(GameObject block)
             {
+                active++;
                 var id = GetItemId(block);
                 foreach (var itemsTransform in Movements.GetForPercentage(id, percentage, true))
                 {
                     // slowmo effect will not affect this blocks
                     SetTransform(block, itemsTransform);
-                    yield return new WaitForEndOfFrame();
+                    yield return 0;
                 }
 
-                active++;
                 SetZeroVelocity(block);
                 yield return 0;
             }

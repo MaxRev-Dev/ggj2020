@@ -22,7 +22,7 @@ namespace Assets.Scripts
         // Start is called before the first frame update
         void Start()
         { 
-            Blocks = GameObject.FindObjectsOfType<BuildingBlock>().Select(x => x.gameObject).ToArray();
+            Blocks = GameObject.FindGameObjectsWithTag("BuildingBlock").ToArray();
             _cameraBase = Camera.main.transform.position;
             RandomizeActiveObjects();
             Timeline = GameObject.FindObjectOfType<TimelineController>();
@@ -202,10 +202,12 @@ namespace Assets.Scripts
         public void RewindOnce()
         {
             _cameraMovement = false;
-            Physics2D.autoSimulation = false;
+            DisablePhysics();
             ClosePivot();
+            CameraReset();
             if (Timeline.RewindOnce())
             {
+               
             }
         }
 
